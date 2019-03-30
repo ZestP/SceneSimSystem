@@ -75,7 +75,6 @@ namespace WPF场景仿真推演系统
         private readonly IntPtr WA_INACTIVE = new IntPtr(0);
 
         private Point u3dLeftUpPos;
-        private static int numThreads = 1;
 
         internal TcpServer WpfServer { get; private set; }
 
@@ -104,14 +103,14 @@ namespace WPF场景仿真推演系统
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             //AllocConsole();
-            
+
             IntPtr hwnd = ((HwndSource)PresentationSource.FromVisual(Panel1)).Handle;
             process = new Process();
-            process.StartInfo.FileName = "场景仿真推演系统.exe";
+            process.StartInfo.FileName = "Data\\场景仿真推演系统.exe";
             process.StartInfo.Arguments = "-parentHWND " + hwnd.ToInt32() + " " + Environment.CommandLine;
             process.StartInfo.UseShellExecute = true;
             process.StartInfo.CreateNoWindow = true;
-            
+
             process.Start();
 
             process.WaitForInputIdle();
@@ -201,7 +200,7 @@ namespace WPF场景仿真推演系统
             if (ts != null)
             {
                 statusBar.Text = $"Select {ts.Content.ToString()}";
-                WpfServer.SendMessage(ts.Content.ToString());
+                WpfServer.SendMessage("Spawn DD");
             }
         }
 
@@ -210,6 +209,7 @@ namespace WPF场景仿真推演系统
             if(e.Key==Key.Escape)
             {
                 UnitCreatorList.SelectedItem = null;
+                WpfServer.SendMessage("Cancel");
             }
         }
     }
