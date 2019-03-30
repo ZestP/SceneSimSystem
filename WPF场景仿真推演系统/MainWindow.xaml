@@ -5,14 +5,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WPF场景仿真推演系统"
         mc:Ignorable="d"
-        Title="场景仿真推演系统" Loaded="Window_Loaded" SizeChanged="Window_SizeChanged" MouseMove="Window_MouseMove" Closed="Window_Closed" Deactivated="Window_Deactivated">
+        Title="场景仿真推演系统" Loaded="Window_Loaded" SizeChanged="Window_SizeChanged" MouseMove="Window_MouseMove" Closed="Window_Closed" Deactivated="Window_Deactivated" Activated="Window_Activated" KeyDown="Window_KeyDown">
     <Grid>
         <DockPanel>
             <!--停靠布局，让菜单栏和工具栏位于窗口顶部-->
             <Menu DockPanel.Dock="Top">
                 <MenuItem Header="文件">
                     <!--菜单项为MenuItem，文字使用属性 Header-->
-                    <MenuItem Name="menuOpen" Header="新建"></MenuItem>
+                    <MenuItem Name="menuOpen" Header="新建" Click="NewFile"></MenuItem>
                     <MenuItem Header="打开"></MenuItem>
                     <MenuItem Header="保存"></MenuItem>
                     <MenuItem Header="另存为"></MenuItem>
@@ -25,7 +25,7 @@
             </Menu>
             <ToolBar DockPanel.Dock="Top">
                 <!--ToolBar和StatusBar就是一个容器-->
-                <Button Content="新建"></Button>
+                <Button Content="新建" Click="NewFile"/>
                 <Button Content="打开"></Button>
                 <Button Content="保存"></Button>
                 <Button Content="另存为"></Button>
@@ -61,50 +61,10 @@
                                     <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
                                     <TextBox VerticalAlignment="Center" Grid.Column="1" VerticalContentAlignment="Center" HorizontalContentAlignment="Stretch" Margin="0,0,5,0"/>
                                 </Grid>
-                                <ListBox Grid.Row="1">
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    
+                                <ListBox x:Name="UnitCreatorList" Grid.Row="1" Margin="5" SelectionChanged="ListBox_SelectionChanged">
+
+                                    <ListBoxItem Content="驱逐舰" HorizontalAlignment="Left" VerticalAlignment="Center"></ListBoxItem>
+                                    <ListBoxItem Content="潜艇" HorizontalAlignment="Left" VerticalAlignment="Center"></ListBoxItem>
                                 </ListBox>
                             </Grid>
                         </TabItem>

@@ -1,24 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.IO.Pipes;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Security.Principal;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 
 namespace WPF场景仿真推演系统
@@ -73,6 +61,12 @@ namespace WPF场景仿真推演系统
         [DllImport("user32.dll")]
         static extern int SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
 
+        //private const string Kernel32_DllName = "kernel32.dll";
+        //[DllImport(Kernel32_DllName)]
+        //public static extern bool FreeConsole();
+        //[DllImport(Kernel32_DllName)]
+        //public static extern bool AllocConsole();
+
         private Process process;
         private IntPtr unityHWND = IntPtr.Zero;
         private DispatcherTimer dispatcherTimer;
@@ -81,6 +75,10 @@ namespace WPF场景仿真推演系统
         private readonly IntPtr WA_INACTIVE = new IntPtr(0);
 
         private Point u3dLeftUpPos;
+        private static int numThreads = 1;
+
+        internal TcpServer WpfServer { get; private set; }
+
         public MainWindow()
         {
             InitializeComponent();
@@ -105,9 +103,11 @@ namespace WPF场景仿真推演系统
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            //AllocConsole();
+            
             IntPtr hwnd = ((HwndSource)PresentationSource.FromVisual(Panel1)).Handle;
             process = new Process();
-            process.StartInfo.FileName = "Client.exe";
+            process.StartInfo.FileName = "场景仿真推演系统.exe";
             process.StartInfo.Arguments = "-parentHWND " + hwnd.ToInt32() + " " + Environment.CommandLine;
             process.StartInfo.UseShellExecute = true;
             process.StartInfo.CreateNoWindow = true;
@@ -124,6 +124,8 @@ namespace WPF场景仿真推演系统
             dispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 10);
 
             dispatcherTimer.Start();
+            WpfServer = new TcpServer();
+            WpfServer.StartServer();
             
         }
         private void InitialResize(object sender, EventArgs e)
@@ -170,6 +172,8 @@ namespace WPF场景仿真推演系统
                 Thread.Sleep(1000);
                 while (process.HasExited == false)
                     process.Kill();
+                //FreeConsole();
+                WpfServer.QuitServer();
             }
             catch (Exception)
             {
@@ -182,31 +186,33 @@ namespace WPF场景仿真推演系统
             DeactivateUnityWindow();
         }
 
-        private void NewScene()
+        private void Window_Activated(object sender, EventArgs e)
         {
-            SendData("NewScene");
+            ActivateUnityWindow();
+        }
+        private void NewFile(object sender, RoutedEventArgs e)
+        {
+            WpfServer.SendMessage("NewFile");
         }
 
-        private void SendData(string str)
+        private void ListBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
-            try
+            ListBoxItem ts = (UnitCreatorList.SelectedItem as ListBoxItem);
+            if (ts != null)
             {
-                using (NamedPipeClientStream pipeClient =
-              new NamedPipeClientStream("localhost", "SceneMaker", PipeDirection.InOut, PipeOptions.Asynchronous, TokenImpersonationLevel.None))
-                {
-                    pipeClient.Connect();
-                    using (StreamWriter sw = new StreamWriter(pipeClient))
-                    {
-                        sw.WriteLine(str);
-                        sw.Flush();
-                    }
-                }
+                statusBar.Text = $"Select {ts.Content.ToString()}";
+                WpfServer.SendMessage(ts.Content.ToString());
             }
-            catch (Exception ex)
-            {
-                statusBar.Text=$"Communication failed.Reason:{ex.Message}";
-            }
+        }
 
+        private void Window_KeyDown(object sender, KeyEventArgs e)
+        {
+            if(e.Key==Key.Escape)
+            {
+                UnitCreatorList.SelectedItem = null;
+            }
         }
     }
+
+
 }
