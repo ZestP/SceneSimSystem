@@ -58,7 +58,7 @@ namespace WPF场景仿真推演系统
 
         internal void SendMessage(string msg)
         {
-            if(clientSocket!=null)
+            if (clientSocket != null)
                 clientSocket.Send(Encoding.UTF8.GetBytes(msg));
         }
 
@@ -99,7 +99,9 @@ namespace WPF场景仿真推演系统
                 {
                     //通过clientSocket接收数据  
                     int receiveNumber = myClientSocket.Receive(result);
-                    Console.WriteLine("接收客户端{0}消息{1}", myClientSocket.RemoteEndPoint.ToString(), Encoding.UTF8.GetString(result, 0, receiveNumber));
+                    string msg = Encoding.UTF8.GetString(result, 0, receiveNumber);
+                    Console.WriteLine("接收客户端{0}消息{1}", myClientSocket.RemoteEndPoint.ToString(), msg);
+                    Parse(msg);
                 }
                 catch (Exception ex)
                 {
@@ -117,5 +119,180 @@ namespace WPF场景仿真推演系统
                 }
             }
         }
+
+        static Queue<List<string>> msgs;
+        static void Parse(string raw)
+        {
+            if (raw == "Spawn DD")//Test
+                msgs.Enqueue(new List<string>(raw.Split(' ')));
+
+        }
+        public static List<string> GetMsg(string dedicated)
+        {
+            //s = "";
+            //foreach(List<string> ss in msgs)
+            //{
+            //    foreach(string s2 in ss)
+            //    {
+            //        s += s2 + ' ';
+            //    }
+            //    s += '\n';
+            //}
+            List<string> result = null;
+            while (msgs.Count > 0 && msgs.Peek()[0] == dedicated)
+            {
+                result = msgs.Dequeue();
+            }
+            return result;
+        }
     }
+
 }
+
+
+
+//public class StateObject
+//    {
+//        public Socket workSocket = null;
+//        public const int BufferSize = 1024;
+//        public byte[] buffer = new byte[BufferSize];
+//        public StringBuilder sb = new StringBuilder();
+//        public StateObject()
+//        {
+
+//        }
+//    }
+//    class TcpServer
+//    {
+//        private static IPAddress myIP = IPAddress.Parse("127.0.0.1");
+//        private static IPEndPoint MyServer;
+//        private static Socket mySocket;
+//        private static Socket handler;
+//        private static ManualResetEvent myReset = new ManualResetEvent(false);
+//        public static void StartServer()
+//        {
+//            try
+//            {
+//                MyServer = new IPEndPoint(myIP, 12345);
+//                mySocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+//                mySocket.Bind(MyServer);
+//                mySocket.Listen(50);
+//                Console.WriteLine("Start listening..");
+//                Thread thread = new Thread(new ThreadStart(target));
+//                thread.Start();
+//            }
+//            catch
+//            {
+//                Console.WriteLine("Invalid IP");
+//            }
+
+//        }
+//        private static void target()
+//        {
+//            while (true)
+//            {
+//                try
+//                {
+//                    myReset.Reset();
+//                    mySocket.BeginAccept(new AsyncCallback(AcceptCallback), mySocket);
+//                    myReset.WaitOne();
+//                }
+//                catch
+//                {
+
+//                }
+//            }
+//        }
+//        private static void AcceptCallback(IAsyncResult ar)
+//        {
+//            myReset.Set();
+//            Socket listener = (Socket)ar.AsyncState;
+//            handler = listener.EndAccept(ar);
+//            StateObject state = new StateObject();
+//            state.workSocket = handler;
+//            try
+//            {
+//                byte[] byteData = System.Text.Encoding.BigEndianUnicode.GetBytes("Server ready!\n\r");
+//                handler.BeginSend(byteData, 0, byteData.Length, 0, new AsyncCallback(SendCallback), handler);
+//            } catch (Exception ee) { Console.WriteLine(ee.Message); }
+//            Thread thread = new Thread(new ThreadStart(begReceive));
+//            thread.Start();
+//        }
+//        private static void SendCallback(IAsyncResult ar)
+//        {
+//            try
+//            {
+//                handler = (Socket)ar.AsyncState;
+//                int byteSent = handler.EndSend(ar);
+//            }catch(Exception eee)
+//            {
+//                Console.WriteLine(eee.Message);
+//            }
+//        }
+//        private static void begReceive()
+//        {
+//            StateObject state = new StateObject();
+//            state.workSocket = handler;
+//            handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReadCallback), state);
+//        }
+//        private static void ReadCallback(IAsyncResult ar)
+//        {
+//            StateObject state = (StateObject)ar.AsyncState;
+//            Socket tt = state.workSocket;
+//            int bytesRead = handler.EndReceive(ar);
+//            state.sb.Append(System.Text.Encoding.BigEndianUnicode.GetString(state.buffer, 0, bytesRead));
+//            string content = state.sb.ToString();
+//            state.sb.Remove(0, content.Length);
+//            Console.WriteLine(content);
+//            Parse(content);
+//            tt.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReadCallback), state);
+//        }
+//        public static void SendMsg(string msg)
+//        {
+//            try
+//            {
+//                byte[] byteData = System.Text.Encoding.BigEndianUnicode.GetBytes(msg);
+//                handler.BeginSend(byteData, 0, byteData.Length, 0, new AsyncCallback(SendCallback), handler);
+
+//            }catch(Exception ee) { Console.WriteLine(ee.Message); }
+//        }
+//        public static void StopServer()
+//        {
+//            try
+//            {
+//                mySocket.Close();
+//                Console.WriteLine("Server stopped.");
+//            }
+//            catch
+//            {
+//                Console.WriteLine("Server failed stopping.");
+//            }
+//        }
+
+//        public static List<string> GetMsg(string dedicated)
+//        {
+//            //s = "";
+//            //foreach(List<string> ss in msgs)
+//            //{
+//            //    foreach(string s2 in ss)
+//            //    {
+//            //        s += s2 + ' ';
+//            //    }
+//            //    s += '\n';
+//            //}
+//            List<string> result = null;
+//            while (msgs.Count > 0 && msgs.Peek()[0] == dedicated)
+//            {
+//                result = msgs.Dequeue();
+//            }
+//            return result;
+//        }
+//        static Queue<List<string>> msgs;
+//        static void Parse(string raw)
+//        {
+//            if (raw == "Spawn DD")//Test
+//                msgs.Enqueue(new List<string>(raw.Split(' ')));
+
+//        }
+//    }
+//}

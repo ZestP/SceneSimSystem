@@ -5,9 +5,13 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WPF场景仿真推演系统"
         mc:Ignorable="d"
-        Title="场景仿真推演系统" Loaded="Window_Loaded" SizeChanged="Window_SizeChanged" MouseMove="Window_MouseMove" Closed="Window_Closed" Deactivated="Window_Deactivated" Activated="Window_Activated" KeyDown="Window_KeyDown">
+        Title="场景仿真推演系统" Loaded="Window_Loaded" SizeChanged="Window_SizeChanged" MouseMove="Window_MouseMove" Closed="Window_Closed" Deactivated="Window_Deactivated" Activated="Window_Activated" KeyDown="Window_KeyDown" GotFocus="Window_GotFocus">
     <Grid>
-        <DockPanel>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="83*"/>
+            <ColumnDefinition Width="171*"/>
+        </Grid.ColumnDefinitions>
+        <DockPanel Grid.ColumnSpan="2" Margin="0,0,-0.4,-0.4">
             <!--停靠布局，让菜单栏和工具栏位于窗口顶部-->
             <Menu DockPanel.Dock="Top">
                 <MenuItem Header="文件">
@@ -30,11 +34,11 @@
                 <Button Content="保存"></Button>
                 <Button Content="另存为"></Button>
                 <Separator/>
-                
+
             </ToolBar>
-            
-            <StatusBar DockPanel.Dock="Bottom" VerticalAlignment="Bottom">
-                <TextBlock x:Name="statusBar" Text="就绪"></TextBlock>
+
+            <StatusBar DockPanel.Dock="Bottom" VerticalAlignment="Bottom" Background="#FF007ACC">
+                <TextBlock x:Name="statusBar" Text="就绪" Foreground="White"></TextBlock>
             </StatusBar>
             <Grid>
                 <Grid.RowDefinitions>
@@ -42,8 +46,9 @@
                     <RowDefinition Height="50"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="300" MaxWidth="300" MinWidth="300"/>
                     <ColumnDefinition/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="2*"/>
                 </Grid.ColumnDefinitions>
                 <Border BorderBrush="Black" Grid.Column="0" Grid.RowSpan="2" BorderThickness="1">
                     <TabControl>
@@ -69,16 +74,62 @@
                             </Grid>
                         </TabItem>
                         <TabItem Header="属性编辑">
-                            <Grid/>
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition/>
+                                </Grid.RowDefinitions>
+                                <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch" MinHeight="3" VerticalAlignment="Center">
+
+                                </GridSplitter>
+                                <Grid Grid.Row="0">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition/>
+                                    </Grid.RowDefinitions>
+                                    <Label Content="属性" Grid.Row="0"></Label>
+                                    <DataGrid x:Name="ParamsDataGrid" Grid.Row="1" ItemsSource="{Binding}" AutoGenerateColumns="False">
+                                        <DataGrid.Columns>
+
+                                            <DataGridTextColumn Binding="{Binding name}" CanUserSort="False" Header="名称" IsReadOnly="True"/>
+                                            <DataGridTextColumn Binding="{Binding value}" Header="值"/>
+
+                                        </DataGrid.Columns>
+
+                                    </DataGrid>
+                                </Grid>
+                                <Grid Grid.Row="2">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition/>
+                                    </Grid.RowDefinitions>
+                                    <Label Content="流程" Grid.Row="0"></Label>
+                                    <DataGrid x:Name="KeyDataGrid" Grid.Row="1" ItemsSource="{Binding}" AutoGenerateColumns="False">
+                                        <DataGrid.Columns>
+
+                                            <DataGridTextColumn Binding="{Binding time}" CanUserSort="False" Header="时刻"/>
+                                            <DataGridTextColumn Binding="{Binding action}" Header="动作" IsReadOnly="True"/>
+                                        
+                                        </DataGrid.Columns>
+
+                                    </DataGrid>
+                                </Grid>
+
+                            </Grid>
                         </TabItem>
                     </TabControl>
                 </Border>
-                <Border x:Name="Panel1" BorderBrush="Black" Grid.Column="1" BorderThickness="1"/>
-                <Border BorderBrush="Black" Grid.Column="1" Grid.Row="1" BorderThickness="1">
-                    <Slider VerticalAlignment="Center" Margin="10,0"/>
+                <Border x:Name="Panel1" BorderBrush="Black" Grid.Column="2" BorderThickness="1"/>
+                <GridSplitter Grid.Column="1" HorizontalAlignment="Center" MinWidth="3" Grid.RowSpan="2" DragCompleted="GridSplitter_DragCompleted">
+
+                </GridSplitter>
+                <Border BorderBrush="Black" Grid.Column="2" Grid.Row="1" BorderThickness="1">
+                    <Slider VerticalAlignment="Center" Margin="10,0" TickPlacement="BottomRight" Maximum="100"/>
                 </Border>
-                
+
             </Grid>
+
 
 
             <!--<Grid DockPanel.Dock="Top">
