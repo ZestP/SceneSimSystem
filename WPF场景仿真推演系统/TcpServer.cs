@@ -21,11 +21,14 @@ namespace WPF场景仿真推演系统
         static Thread receiveThread;
 
         //属性
-
+        private UnitManager mUnitMan;
         public int port { get; set; }
         //方法
 
-
+        public TcpServer()
+        {
+            msgs = new Queue<List<string>>();
+        }
 
         internal void StartServer()
         {
@@ -42,7 +45,10 @@ namespace WPF场景仿真推演系统
             myThread.Start();
 
         }
-
+        public void BindRefs(UnitManager um)
+        {
+            mUnitMan = um;
+        }
 
         internal void QuitServer()
         {
@@ -67,7 +73,7 @@ namespace WPF场景仿真推演系统
         /// <summary>  
         /// 监听客户端连接  
         /// </summary>  
-        private static void ListenClientConnect()
+        private void ListenClientConnect()
         {
             while (true)
             {
@@ -90,7 +96,7 @@ namespace WPF场景仿真推演系统
         /// 接收消息  
         /// </summary>  
         /// <param name="clientSocket"></param>  
-        private static void ReceiveMessage(object clientSocket)
+        private void ReceiveMessage(object clientSocket)
         {
             Socket myClientSocket = (Socket)clientSocket;
             while (true)
@@ -121,13 +127,15 @@ namespace WPF场景仿真推演系统
         }
 
         static Queue<List<string>> msgs;
-        static void Parse(string raw)
+        void Parse(string raw)
         {
-            if (raw == "Spawn DD")//Test
-                msgs.Enqueue(new List<string>(raw.Split(' ')));
-
+            List<string> tmp = new List<string>(raw.Split(' '));
+            if(tmp.Count>0&&tmp[0]=="Spawn"||tmp[0]=="Select"||tmp[0]=="Modify" || tmp[0] == "Add")
+            {
+                msgs.Enqueue(tmp);
+            }
         }
-        public static List<string> GetMsg(string dedicated)
+        public List<string> GetMsg(string dedicated)
         {
             //s = "";
             //foreach(List<string> ss in msgs)

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Data;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -36,6 +37,16 @@ namespace WPF场景仿真推演系统
         {
             name = n;
             value = v;
+        }
+    }
+    public class UnitData
+    {
+        public string ID { get; set; }
+        public string type{ get; set; }
+        public UnitData(string id, string t)
+        {
+            ID = id;
+            type = t;
         }
     }
     public class DPIUtils
@@ -92,7 +103,7 @@ namespace WPF场景仿真推演系统
 
         private Process process;
         private IntPtr unityHWND = IntPtr.Zero;
-        private DispatcherTimer dispatcherTimer;
+        private DispatcherTimer dispatcherTimer,dispatcherTimer2,clockDispatcher;
         private const int WM_ACTIVATE = 0x0006;
         private readonly IntPtr WA_ACTIVE = new IntPtr(1);
         private readonly IntPtr WA_INACTIVE = new IntPtr(0);
@@ -100,14 +111,16 @@ namespace WPF场景仿真推演系统
         private Point u3dLeftUpPos;
 
         internal TcpServer WpfServer { get; private set; }
-        private ObservableCollection<KeyframeData> list { get; set; }
-
-        private List<DD> DDs;
-
+        private UnitManager mUnitMan;
+        private bool isU3DLoaded = false;
+        public Clock mClock;
         public MainWindow()
         {
             InitializeComponent();
-
+            mUnitMan = new UnitManager(this);
+            WpfServer = new TcpServer();
+            WpfServer.BindRefs(mUnitMan);
+            mClock = new Clock(100);
         }
         
         private int WindowEnum(IntPtr hwnd, IntPtr lparam)
@@ -142,7 +155,7 @@ namespace WPF场景仿真推演系统
             process.Start();
 
             process.WaitForInputIdle();
-
+            isU3DLoaded = true;
             // Doesn't work for some reason ?!
             //unityHWND = process.MainWindowHandle;
             EnumChildWindows(hwnd, WindowEnum, IntPtr.Zero);
@@ -151,50 +164,66 @@ namespace WPF场景仿真推演系统
             dispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 10);
 
             dispatcherTimer.Start();
+            dispatcherTimer2 = new DispatcherTimer();
+            dispatcherTimer2.Tick += new EventHandler(MsgHandler);
+            dispatcherTimer2.Interval = new TimeSpan(0, 0, 0, 0, 10);
 
-            dispatcherTimer = new DispatcherTimer();
-            dispatcherTimer.Tick += new EventHandler(NetMessageHandler);
-            dispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 10);
+            dispatcherTimer2.Start();
 
-            dispatcherTimer.Start();
-            WpfServer = new TcpServer();
+            clockDispatcher = new DispatcherTimer();
+            clockDispatcher.Tick += new EventHandler(ClockUpdate);
+            clockDispatcher.Interval = new TimeSpan(0, 0, 0, 1);
+            clockDispatcher.Start();
             WpfServer.StartServer();
-            list = new ObservableCollection<KeyframeData>();
-            list.Add(new KeyframeData("000", "DSF" ));
-            list.Add(new KeyframeData("1989", "DS12321321F"));
-
-            KeyDataGrid.DataContext = list;
             
+            UnitsGrid.DataContext = mUnitMan.unitsDisplayList;
             //KeyDataGrid.ItemsSource = list;
             
+            timeSlider.Maximum = mClock.TimeSpan;
+            timeSlider.Value = mClock.CurrentTime;
+            timeIndicator.Content = $"{mClock.CurrentTime}/{mClock.TimeSpan}";
 
         }
 
-        private void NetMessageHandler(object sender, EventArgs e)
+        private void ClockUpdate(object sender, EventArgs e)
         {
-            List<string> msg = TcpServer.GetMsg("Spawn");
-            ParseMsg(msg);
-        }
-        public void ParseMsg(List<string> msg)
-        {
-            if (msg != null)
+            if (mClock.IsPlaying && mClock.CurrentTime < mClock.TimeSpan)
             {
-                switch (msg[1])
-                {
-                    case "DD":
-                        Position tp = new Position();
-                        tp.X = msg[2];
-                        tp.Y = msg[3];
-                        tp.Z = msg[4];
-                        tp.T = 0;
-                        DDs.Add(new DD(tp));
-                        break;
-                    default:
-                        break;
-                }
-
+                mClock.CurrentTime += 1;
+                timeIndicator.Content = $"{(int)mClock.CurrentTime}/{(int)mClock.TimeSpan}";
+                timeSlider.Value = (int)mClock.CurrentTime;
             }
         }
+
+        private void MsgHandler(object sender, EventArgs e)
+        {
+            List<string> tmsg = WpfServer.GetMsg("Spawn");
+            if (tmsg!=null)
+            {
+                Console.WriteLine("msgget");
+                mUnitMan.ParseMsg(tmsg);
+            }
+            tmsg = WpfServer.GetMsg("Select");
+            if (tmsg != null)
+            {
+                Console.WriteLine("msgsel");
+                mUnitMan.ParseMsg(tmsg);
+            }
+            tmsg = WpfServer.GetMsg("Modify");
+            if (tmsg != null)
+            {
+                Console.WriteLine("msgmod");
+                mUnitMan.ParseMsg(tmsg);
+            }
+            tmsg = WpfServer.GetMsg("Add");
+            if (tmsg != null)
+            {
+                Console.WriteLine("msgadd");
+                mUnitMan.ParseMsg(tmsg);
+            }
+            //dispatcherTimer2.Start();
+        }
+
         private void InitialResize(object sender, EventArgs e)
         {
             //MessageBox.Show("Timer");
@@ -205,14 +234,17 @@ namespace WPF场景仿真推演系统
         }
         private void ResizeU3D()
         {
-            Window window = Window.GetWindow(this);
-            u3dLeftUpPos = Panel1.TransformToAncestor(window).Transform(new Point(0, 0));
-            DPIUtils.Init(this);
-            //MessageBox.Show($"{DPIUtils.DPIX},{DPIUtils.DPIY}");
-            u3dLeftUpPos.X *= DPIUtils.DPIX;
-            u3dLeftUpPos.Y *= DPIUtils.DPIY;
-            MoveWindow(unityHWND, (int)u3dLeftUpPos.X, (int)u3dLeftUpPos.Y, (int)(Panel1.ActualWidth * DPIUtils.DPIX), (int)(Panel1.ActualHeight * DPIUtils.DPIY), true);
-            ActivateUnityWindow();
+            if (isU3DLoaded)
+            {
+                Window window = Window.GetWindow(this);
+                u3dLeftUpPos = Panel1.TransformToAncestor(window).Transform(new Point(0, 0));
+                DPIUtils.Init(this);
+                //MessageBox.Show($"{DPIUtils.DPIX},{DPIUtils.DPIY}");
+                u3dLeftUpPos.X *= DPIUtils.DPIX;
+                u3dLeftUpPos.Y *= DPIUtils.DPIY;
+                MoveWindow(unityHWND, (int)u3dLeftUpPos.X, (int)u3dLeftUpPos.Y, (int)(Panel1.ActualWidth * DPIUtils.DPIX), (int)(Panel1.ActualHeight * DPIUtils.DPIY), true);
+                ActivateUnityWindow();
+            }
         }
         private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
         {
@@ -285,6 +317,138 @@ namespace WPF场景仿真推演系统
         private void GridSplitter_DragCompleted(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
         {
             ResizeU3D();
+        }
+
+        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            
+        }
+
+        private void UnitsGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            string selID = (UnitsGrid.SelectedItem as UnitData).ID;
+            WpfServer.SendMessage($"Select {selID}");
+            LeftTabCtrl.SelectedIndex = 2;
+        }
+
+        private void Expander_Expanded(object sender, RoutedEventArgs e)
+        {
+            if(isU3DLoaded)
+                dispatcherTimer.Start();
+        }
+
+        private void Expander_Collapsed(object sender, RoutedEventArgs e)
+        {
+            if (isU3DLoaded)
+                dispatcherTimer.Start();
+        }
+
+        private void Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (mClock.IsPlaying) return;
+            mClock.CurrentTime=(int)(timeSlider.Value);
+            timeIndicator.Content = $"{(int)mClock.CurrentTime}/{(int)mClock.TimeSpan}";
+            WpfServer.SendMessage($"Timeleap {(int)mClock.CurrentTime}");
+            mUnitMan.UpdateParamList();
+        }
+        private void Timeshift(int to)
+        {
+            mClock.CurrentTime = to;
+            timeIndicator.Content = $"{(int)mClock.CurrentTime}/{(int)mClock.TimeSpan}";
+            timeSlider.Value = (int)mClock.CurrentTime;
+            WpfServer.SendMessage($"Timeleap {(int)mClock.CurrentTime}");
+            mUnitMan.UpdateParamList();
+        }
+        private void ParamsDataGrid_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
+        {
+            string newKey=(e.Row.DataContext as ParamsData).name;
+            string newValue = (e.EditingElement as TextBox).Text;
+            float res;
+            if (!float.TryParse(newValue, out res)) { e.Cancel = true;return; }
+            Console.WriteLine(newValue);
+            ObservableCollection<ParamsData> toc=ParamsDataGrid.DataContext as ObservableCollection<ParamsData>;
+            string[] args = new string[5];
+            for (int i = 0; i < toc.Count;i++)
+            {
+                
+                if(toc[i].name== "X坐标")
+                {
+                    args[0] = toc[i].name==newKey?newValue:toc[i].value;
+                }else if (toc[i].name == "Y坐标")
+                {
+                    args[1] = toc[i].name == newKey ? newValue : toc[i].value;
+                }
+                else if (toc[i].name == "Z坐标")
+                {
+                    args[2] = toc[i].name == newKey ? newValue : toc[i].value;
+                }else if(toc[i].name=="类型")
+                {
+                    args[4] = toc[i].name == newKey ? newValue : toc[i].value;
+                }
+            }
+            args[3] = mClock.CurrentTime.ToString();
+            Position tp = new Position();
+            tp.X = args[0];
+            tp.Y = args[1];
+            tp.Z = args[2];
+            tp.T = (int)mClock.CurrentTime;
+            if (mUnitMan.selUnit.ContainsTargetAtSameTime(tp))
+            {
+                WpfServer.SendMessage($"Modify {mUnitMan.selUnit.mID} {args[0]} {args[1]} {args[2]} {args[3]} {args[4]}");
+                mUnitMan.selUnit.ModifyTarget(tp);
+            }
+            else
+            {
+                WpfServer.SendMessage($"Add {mUnitMan.selUnit.mID} {args[0]} {args[1]} {args[2]} {args[3]} {args[4]}");
+                mUnitMan.selUnit.AddTarget(tp.X,tp.Y,tp.Z,tp.T);
+            }
+            if(int.Parse(args[4])!=mUnitMan.selUnit.mType)
+            {
+                mUnitMan.selUnit.mType = int.Parse(args[4]);
+            }
+            mUnitMan.UpdateKeyframeList();
+            
+        }
+
+        private void KeyDataGrid_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
+        {
+            string oldValue = (e.Row.DataContext as KeyframeData).time;
+            string newValue = (e.EditingElement as TextBox).Text;
+            Console.WriteLine(newValue);
+            int tmp;
+            if (oldValue == newValue) return;
+            if(!int.TryParse(newValue,out tmp)) { e.Cancel = true;return; }
+            WpfServer.SendMessage($"Timeshift {mUnitMan.selUnit.mID} {oldValue} {newValue}");
+            mUnitMan.selUnit.TimeshiftTarget(int.Parse(oldValue),int.Parse(newValue));
+            Timeshift(tmp);
+            mUnitMan.UpdateKeyframeList();
+        }
+
+        private void KeyDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (KeyDataGrid.SelectedItem != null)
+            {
+                Timeshift(int.Parse((KeyDataGrid.SelectedItem as KeyframeData).time));
+                Console.WriteLine(KeyDataGrid.SelectedIndex);
+            }
+            
+        }
+
+        private void PlaystateBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if(mClock.IsPlaying)
+            {
+                mClock.IsPlaying = false;
+                PlaystateBtn.Content = "播放";
+                WpfServer.SendMessage("Pause");
+            }
+            else
+            {
+                mClock.IsPlaying = true;
+                PlaystateBtn.Content = "暂停";
+                WpfServer.SendMessage("Play");
+            }
+
         }
 
         private void Window_GotFocus(object sender, RoutedEventArgs e)

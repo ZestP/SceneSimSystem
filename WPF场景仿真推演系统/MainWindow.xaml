@@ -13,7 +13,7 @@
         </Grid.ColumnDefinitions>
         <DockPanel Grid.ColumnSpan="2" Margin="0,0,-0.4,-0.4">
             <!--停靠布局，让菜单栏和工具栏位于窗口顶部-->
-            <Menu DockPanel.Dock="Top">
+            <Menu DockPanel.Dock="Top" Visibility="Collapsed">
                 <MenuItem Header="文件">
                     <!--菜单项为MenuItem，文字使用属性 Header-->
                     <MenuItem Name="menuOpen" Header="新建" Click="NewFile"></MenuItem>
@@ -27,7 +27,7 @@
                 <MenuItem Header="工具"></MenuItem>
                 <MenuItem Header="关于"></MenuItem>
             </Menu>
-            <ToolBar DockPanel.Dock="Top">
+            <ToolBar DockPanel.Dock="Top" Visibility="Collapsed">
                 <!--ToolBar和StatusBar就是一个容器-->
                 <Button Content="新建" Click="NewFile"/>
                 <Button Content="打开"></Button>
@@ -43,7 +43,7 @@
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition/>
-                    <RowDefinition Height="50"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
@@ -51,7 +51,7 @@
                     <ColumnDefinition Width="2*"/>
                 </Grid.ColumnDefinitions>
                 <Border BorderBrush="Black" Grid.Column="0" Grid.RowSpan="2" BorderThickness="1">
-                    <TabControl>
+                    <TabControl x:Name="LeftTabCtrl" >
                         <TabItem Header="单位创建">
                             <Grid>
                                 <Grid.RowDefinitions>
@@ -64,7 +64,7 @@
                                         <ColumnDefinition/>
                                     </Grid.ColumnDefinitions>
                                     <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <TextBox VerticalAlignment="Center" Grid.Column="1" VerticalContentAlignment="Center" HorizontalContentAlignment="Stretch" Margin="0,0,5,0"/>
+                                    <TextBox VerticalAlignment="Center" Grid.Column="1" VerticalContentAlignment="Center" HorizontalContentAlignment="Stretch" Margin="0,0,5,0" TextChanged="TextBox_TextChanged"/>
                                 </Grid>
                                 <ListBox x:Name="UnitCreatorList" Grid.Row="1" Margin="5" SelectionChanged="ListBox_SelectionChanged">
 
@@ -73,48 +73,47 @@
                                 </ListBox>
                             </Grid>
                         </TabItem>
+                        <TabItem Header="单位管理">
+                            <DataGrid x:Name="UnitsGrid" Grid.Row="1" ItemsSource="{Binding}" AutoGenerateColumns="False" SelectionChanged="UnitsGrid_SelectionChanged">
+                                <DataGrid.Columns>
+
+                                    <DataGridTextColumn Binding="{Binding ID}" CanUserSort="False" Header="编号" IsReadOnly="True"/>
+                                    <DataGridTextColumn Binding="{Binding type}" CanUserSort="False" Header="类型" IsReadOnly="True"/>
+                                </DataGrid.Columns>
+
+                            </DataGrid>
+                        </TabItem>
                         <TabItem Header="属性编辑">
-                            <Grid>
+                            <Grid Background="#FFEEEEEE">
                                 <Grid.RowDefinitions>
-                                    <RowDefinition/>
                                     <RowDefinition Height="Auto"/>
-                                    <RowDefinition/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
-                                <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch" MinHeight="3" VerticalAlignment="Center">
+                                
+                               
+                                    <Expander Grid.Row="0" Header="属性" Background="White" Margin="0">
+                                        <DataGrid x:Name="ParamsDataGrid" Grid.Row="1" ItemsSource="{Binding}" AutoGenerateColumns="False" CellEditEnding="ParamsDataGrid_CellEditEnding">
+                                            <DataGrid.Columns>
 
-                                </GridSplitter>
-                                <Grid Grid.Row="0">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition/>
-                                    </Grid.RowDefinitions>
-                                    <Label Content="属性" Grid.Row="0"></Label>
-                                    <DataGrid x:Name="ParamsDataGrid" Grid.Row="1" ItemsSource="{Binding}" AutoGenerateColumns="False">
-                                        <DataGrid.Columns>
+                                                <DataGridTextColumn Binding="{Binding name}" CanUserSort="False" Header="名称" IsReadOnly="True"/>
+                                                <DataGridTextColumn Binding="{Binding value}" Header="值"/>
 
-                                            <DataGridTextColumn Binding="{Binding name}" CanUserSort="False" Header="名称" IsReadOnly="True"/>
-                                            <DataGridTextColumn Binding="{Binding value}" Header="值"/>
+                                            </DataGrid.Columns>
 
-                                        </DataGrid.Columns>
+                                        </DataGrid>
+                                    </Expander>
 
-                                    </DataGrid>
-                                </Grid>
-                                <Grid Grid.Row="2">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition/>
-                                    </Grid.RowDefinitions>
-                                    <Label Content="流程" Grid.Row="0"></Label>
-                                    <DataGrid x:Name="KeyDataGrid" Grid.Row="1" ItemsSource="{Binding}" AutoGenerateColumns="False">
+                                <Expander Header="流程" Grid.Row="1" Background="White">
+                                    <DataGrid x:Name="KeyDataGrid" Grid.Row="1" ItemsSource="{Binding}" AutoGenerateColumns="False" CellEditEnding="KeyDataGrid_CellEditEnding" SelectionChanged="KeyDataGrid_SelectionChanged">
                                         <DataGrid.Columns>
 
                                             <DataGridTextColumn Binding="{Binding time}" CanUserSort="False" Header="时刻"/>
                                             <DataGridTextColumn Binding="{Binding action}" Header="动作" IsReadOnly="True"/>
-                                        
+
                                         </DataGrid.Columns>
 
                                     </DataGrid>
-                                </Grid>
+                                </Expander>
 
                             </Grid>
                         </TabItem>
@@ -125,7 +124,20 @@
 
                 </GridSplitter>
                 <Border BorderBrush="Black" Grid.Column="2" Grid.Row="1" BorderThickness="1">
-                    <Slider VerticalAlignment="Center" Margin="10,0" TickPlacement="BottomRight" Maximum="100"/>
+                    <Expander Header="时间轴" IsExpanded="True" Expanded="Expander_Expanded" Collapsed="Expander_Collapsed">
+                        <Grid Background="#FFEEEEEE">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Slider x:Name="timeSlider" VerticalAlignment="Center" Margin="0,8,0,0" TickPlacement="BottomRight" Maximum="100" IsSnapToTickEnabled="True" Grid.Column="1" ValueChanged="Slider_ValueChanged"/>
+                            <Label x:Name="timeIndicator" Grid.Column="0" Content="100/100" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            <Button x:Name="PlaystateBtn" Grid.Column="2" Content="播放" Padding="10,1" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,5,0" Click="PlaystateBtn_Click"></Button>
+                        </Grid>
+                    </Expander>
+                    
+                    
                 </Border>
 
             </Grid>
