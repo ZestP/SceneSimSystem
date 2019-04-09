@@ -10,6 +10,7 @@ namespace WPF场景仿真推演系统
         public int mID;
         private List<Position> mTargets;
         private Dictionary<int, int> mTimeDict;
+        private Dictionary<int, string> mTimeMemo;
         private static string[] TYPES = { "驱逐舰" };
         public MainWindow mWindow;
         public UnitProfile(int id, int type, MainWindow mw)
@@ -17,6 +18,7 @@ namespace WPF场景仿真推演系统
             mWindow = mw;
             mType = type;
             mID = id;
+            mTimeMemo = new Dictionary<int, string>();
         }
         public void AddTarget(string x, string y, string z, int t)
         {
@@ -39,6 +41,7 @@ namespace WPF场景仿真推演系统
                 else
                     return 1;
             });
+            mTimeMemo[t] = "请添加流程说明……";
             RebuildTimeDict();
         }
         public void ClearTargets()
@@ -63,7 +66,27 @@ namespace WPF场景仿真推演系统
         }
         public void TimeshiftTarget(int old,int now)
         {
+            mTimeMemo[now] = mTimeMemo[old];
+            mTimeMemo.Remove(old);
             mTargets[mTimeDict[old]].T = now;
+            mTargets.Sort((left, right) =>
+            {
+                if (left.T < right.T)
+                    return -1;
+                else if (left.T == right.T)
+                    return 0;
+                else
+                    return 1;
+            });
+            RebuildTimeDict();
+        }
+        public void SwapTime(int a,int b)
+        {
+            string tmp = mTimeMemo[b];
+            mTimeMemo[b] = mTimeMemo[a];
+            mTimeMemo[a] = tmp;
+            mTargets[mTimeDict[a]].T = b;
+            mTargets[mTimeDict[b]].T = a;
             mTargets.Sort((left, right) =>
             {
                 if (left.T < right.T)
@@ -85,7 +108,10 @@ namespace WPF场景仿真推演系统
                 mTimeDict.Add(mTargets[i].T, i);
             }
         }
-
+        public void SetKeyframeMemo(string s,int time)
+        {
+            mTimeMemo[time] = s;
+        }
         public UnitData GetUnitData()
         {
             string typestr = TYPES[mType];
@@ -155,7 +181,7 @@ namespace WPF场景仿真推演系统
             {
                 for (int i = 0; i < mTargets.Count; i++)
                 {
-                    ans.Add(new KeyframeData(mTargets[i].T.ToString(), "TODO:关键帧描述"));
+                    ans.Add(new KeyframeData(mTargets[i].T.ToString(), mTimeMemo[mTargets[i].T]));
                 }
             }
             return ans;
@@ -176,7 +202,15 @@ namespace WPF场景仿真推演系统
         //}
         public bool ContainsTargetAtSameTime(Position b)
         {
-            if (!mTimeDict.ContainsKey((int)(mWindow.mClock.CurrentTime)))
+            if (!mTimeDict.ContainsKey(b.T))
+            {
+                return false;
+            }
+            return true;
+        }
+        public bool ContainsTargetAtSameTime(int b)
+        {
+            if (!mTimeDict.ContainsKey(b))
             {
                 return false;
             }

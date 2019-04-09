@@ -100,6 +100,7 @@ namespace WPF场景仿真推演系统
                         selUnit=GetUnit(int.Parse(msg[1]));
                         UpdateKeyframeList();
                         UpdateParamList();
+                        mWindow.LeftTabCtrl.SelectedIndex = 2;
                         break;
                     case "Modify":
 

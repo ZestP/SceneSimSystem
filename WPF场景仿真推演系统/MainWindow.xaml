@@ -50,7 +50,7 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="2*"/>
                 </Grid.ColumnDefinitions>
-                <Border BorderBrush="Black" Grid.Column="0" Grid.RowSpan="2" BorderThickness="1">
+                <Border x:Name="LeftPanels" BorderBrush="Black" Grid.Column="0" Grid.RowSpan="2" BorderThickness="1">
                     <TabControl x:Name="LeftTabCtrl" >
                         <TabItem Header="单位创建">
                             <Grid>
@@ -108,7 +108,7 @@
                                         <DataGrid.Columns>
 
                                             <DataGridTextColumn Binding="{Binding time}" CanUserSort="False" Header="时刻"/>
-                                            <DataGridTextColumn Binding="{Binding action}" Header="动作" IsReadOnly="True"/>
+                                            <DataGridTextColumn Binding="{Binding action}" Header="动作"/>
 
                                         </DataGrid.Columns>
 

@@ -412,16 +412,37 @@ namespace WPF场景仿真推演系统
 
         private void KeyDataGrid_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
         {
-            string oldValue = (e.Row.DataContext as KeyframeData).time;
-            string newValue = (e.EditingElement as TextBox).Text;
-            Console.WriteLine(newValue);
-            int tmp;
-            if (oldValue == newValue) return;
-            if(!int.TryParse(newValue,out tmp)) { e.Cancel = true;return; }
-            WpfServer.SendMessage($"Timeshift {mUnitMan.selUnit.mID} {oldValue} {newValue}");
-            mUnitMan.selUnit.TimeshiftTarget(int.Parse(oldValue),int.Parse(newValue));
-            Timeshift(tmp);
-            mUnitMan.UpdateKeyframeList();
+            if((e.Column.Header as string)=="动作")
+            {
+                string oldValue = (e.Row.DataContext as KeyframeData).time;
+                string newValue = (e.EditingElement as TextBox).Text;
+                mUnitMan.selUnit.SetKeyframeMemo(newValue, int.Parse(oldValue));
+                mUnitMan.UpdateKeyframeList();
+            }
+            else if((e.Column.Header as string) == "时刻")
+            {
+                string oldValue = (e.Row.DataContext as KeyframeData).time;
+                string newValue = (e.EditingElement as TextBox).Text;
+                Console.WriteLine(oldValue + " " + newValue);
+                int tmp;
+                if (oldValue == newValue) return;
+                if (!int.TryParse(newValue, out tmp)) { e.Cancel = true; return; }
+                if (mUnitMan.selUnit.ContainsTargetAtSameTime(tmp))
+                {
+                    Console.WriteLine("SWAP KEYS");
+                    WpfServer.SendMessage($"SwapKey {mUnitMan.selUnit.mID} {oldValue} {newValue}");
+                    mUnitMan.selUnit.SwapTime(int.Parse(oldValue), int.Parse(newValue));
+                }
+                else
+                {
+                    WpfServer.SendMessage($"Timeshift {mUnitMan.selUnit.mID} {oldValue} {newValue}");
+                    mUnitMan.selUnit.TimeshiftTarget(int.Parse(oldValue), int.Parse(newValue));
+                }
+
+                Timeshift(tmp);
+                mUnitMan.UpdateKeyframeList();
+            }
+                
         }
 
         private void KeyDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -441,12 +462,14 @@ namespace WPF场景仿真推演系统
                 mClock.IsPlaying = false;
                 PlaystateBtn.Content = "播放";
                 WpfServer.SendMessage("Pause");
+                LeftPanels.IsEnabled = true;
             }
             else
             {
                 mClock.IsPlaying = true;
                 PlaystateBtn.Content = "暂停";
                 WpfServer.SendMessage("Play");
+                LeftPanels.IsEnabled = false;
             }
 
         }
