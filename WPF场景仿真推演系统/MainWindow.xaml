@@ -13,26 +13,26 @@
         </Grid.ColumnDefinitions>
         <DockPanel Grid.ColumnSpan="2" Margin="0,0,-0.4,-0.4">
             <!--停靠布局，让菜单栏和工具栏位于窗口顶部-->
-            <Menu DockPanel.Dock="Top" Visibility="Collapsed">
+            <Menu DockPanel.Dock="Top">
                 <MenuItem Header="文件">
                     <!--菜单项为MenuItem，文字使用属性 Header-->
                     <MenuItem Name="menuOpen" Header="新建" Click="NewFile"></MenuItem>
-                    <MenuItem Header="打开"></MenuItem>
-                    <MenuItem Header="保存"></MenuItem>
-                    <MenuItem Header="另存为"></MenuItem>
+                    <MenuItem Header="打开" Click="OpenFile"></MenuItem>
+                    <MenuItem Header="保存" Click="SaveFile"></MenuItem>
+                    <MenuItem Header="另存为" Click="SaveAs"></MenuItem>
                     <Separator></Separator>
-                    <MenuItem Header="退出"></MenuItem>
+                    <MenuItem Header="退出" Click="Exit"></MenuItem>
                 </MenuItem>
-                <MenuItem Header="编辑"></MenuItem>
-                <MenuItem Header="工具"></MenuItem>
-                <MenuItem Header="关于"></MenuItem>
+                <MenuItem Header="关于">
+                    <MenuItem Header="版本信息" Click="Version"/>
+                </MenuItem>
             </Menu>
-            <ToolBar DockPanel.Dock="Top" Visibility="Collapsed">
+            <ToolBar DockPanel.Dock="Top">
                 <!--ToolBar和StatusBar就是一个容器-->
                 <Button Content="新建" Click="NewFile"/>
-                <Button Content="打开"></Button>
-                <Button Content="保存"></Button>
-                <Button Content="另存为"></Button>
+                <Button Content="打开" Click="OpenFile"></Button>
+                <Button Content="保存" Click="SaveFile"></Button>
+                <Button Content="另存为" Click="SaveAs"></Button>
                 <Separator/>
 
             </ToolBar>
@@ -51,25 +51,25 @@
                     <ColumnDefinition Width="2*"/>
                 </Grid.ColumnDefinitions>
                 <Border x:Name="LeftPanels" BorderBrush="Black" Grid.Column="0" Grid.RowSpan="2" BorderThickness="1">
-                    <TabControl x:Name="LeftTabCtrl" >
+                    <TabControl x:Name="LeftTabCtrl" SelectionChanged="LeftTabCtrl_SelectionChanged" >
                         <TabItem Header="单位创建">
                             <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition/>
                                 </Grid.RowDefinitions>
-                                <Grid>
+                                <Grid Visibility="Collapsed">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition/>
                                     </Grid.ColumnDefinitions>
                                     <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <TextBox VerticalAlignment="Center" Grid.Column="1" VerticalContentAlignment="Center" HorizontalContentAlignment="Stretch" Margin="0,0,5,0" TextChanged="TextBox_TextChanged"/>
+                                    <TextBox VerticalAlignment="Center" Grid.Column="1" VerticalContentAlignment="Center" HorizontalContentAlignment="Stretch" Margin="0,0,5,0"/>
                                 </Grid>
                                 <ListBox x:Name="UnitCreatorList" Grid.Row="1" Margin="5" SelectionChanged="ListBox_SelectionChanged">
 
                                     <ListBoxItem Content="驱逐舰" HorizontalAlignment="Left" VerticalAlignment="Center"></ListBoxItem>
-                                    <ListBoxItem Content="潜艇" HorizontalAlignment="Left" VerticalAlignment="Center"></ListBoxItem>
+                                    
                                 </ListBox>
                             </Grid>
                         </TabItem>
@@ -78,6 +78,7 @@
                                 <DataGrid.Columns>
 
                                     <DataGridTextColumn Binding="{Binding ID}" CanUserSort="False" Header="编号" IsReadOnly="True"/>
+                                    <DataGridTextColumn Binding="{Binding name}" CanUserSort="False" Header="名称" IsReadOnly="True"/>
                                     <DataGridTextColumn Binding="{Binding type}" CanUserSort="False" Header="类型" IsReadOnly="True"/>
                                 </DataGrid.Columns>
 
@@ -128,12 +129,16 @@
                         <Grid Background="#FFEEEEEE">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <Slider x:Name="timeSlider" VerticalAlignment="Center" Margin="0,8,0,0" TickPlacement="BottomRight" Maximum="100" IsSnapToTickEnabled="True" Grid.Column="1" ValueChanged="Slider_ValueChanged"/>
-                            <Label x:Name="timeIndicator" Grid.Column="0" Content="100/100" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                            <Button x:Name="PlaystateBtn" Grid.Column="2" Content="播放" Padding="10,1" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,5,0" Click="PlaystateBtn_Click"></Button>
+                            <Slider x:Name="timeSlider" VerticalAlignment="Center" Margin="5,8,0,0" TickPlacement="BottomRight" Maximum="100" IsSnapToTickEnabled="True" Grid.Column="3" ValueChanged="Slider_ValueChanged"/>
+                            <Label x:Name="currentTimeIndicator" VerticalAlignment="Center" Content="0"/>
+                            <Label Grid.Column="1" Content="/" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            <Label x:Name="maxTimeIndicator" Grid.Column="2" VerticalAlignment="Center" Content="100"/>
+                            <Button x:Name="PlaystateBtn" Grid.Column="4" Content="播放" Padding="10,1" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,5,0" Click="PlaystateBtn_Click"></Button>
                         </Grid>
                     </Expander>
                     

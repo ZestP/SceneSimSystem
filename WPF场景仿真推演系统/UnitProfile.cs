@@ -4,20 +4,27 @@ using System.Collections.ObjectModel;
 
 namespace WPF场景仿真推演系统
 {
+    public enum UnitType
+    {
+        驱逐舰,潜艇
+    }
     public class UnitProfile
     {
-        public int mType;
+        public UnitType mType;
         public int mID;
+        public string mName;
         private List<Position> mTargets;
         private Dictionary<int, int> mTimeDict;
         private Dictionary<int, string> mTimeMemo;
-        private static string[] TYPES = { "驱逐舰" };
+        
         public MainWindow mWindow;
         public UnitProfile(int id, int type, MainWindow mw)
         {
+            
             mWindow = mw;
-            mType = type;
+            mType = (UnitType)type;
             mID = id;
+            mName = $"{mType}_{mID}";
             mTimeMemo = new Dictionary<int, string>();
         }
         public void AddTarget(string x, string y, string z, int t)
@@ -114,14 +121,15 @@ namespace WPF场景仿真推演系统
         }
         public UnitData GetUnitData()
         {
-            string typestr = TYPES[mType];
-            return new UnitData(mID.ToString(), typestr);
+            string typestr = mType.ToString();
+            return new UnitData(mID.ToString(), mName,typestr);
         }
         public ObservableCollection<ParamsData> GetParamsAtTime(int time)
         {
             if (mTimeDict.ContainsKey(time))
             {
                 ObservableCollection<ParamsData> ans = new ObservableCollection<ParamsData>();
+                ans.Add(new ParamsData("名称", mName.ToString()));
                 ans.Add(new ParamsData("类型", mType.ToString()));
                 ans.Add(new ParamsData("X坐标", mTargets[mTimeDict[time]].X));
                 ans.Add(new ParamsData("Y坐标", mTargets[mTimeDict[time]].Y));
@@ -133,6 +141,7 @@ namespace WPF场景仿真推演系统
                 Position tp=Move(time);
                 
                 ObservableCollection<ParamsData> ansOb = new ObservableCollection<ParamsData>();
+                ansOb.Add(new ParamsData("名称", mName.ToString()));
                 ansOb.Add(new ParamsData("类型", mType.ToString()));
                 ansOb.Add(new ParamsData("X坐标", tp.X));
                 ansOb.Add(new ParamsData("Y坐标", tp.Y));

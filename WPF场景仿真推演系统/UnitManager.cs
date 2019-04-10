@@ -126,6 +126,11 @@ namespace WPF场景仿真推演系统
                         UpdateKeyframeList();
                         UpdateParamList();
                         break;
+                    case "Disselect":
+
+                        mWindow.ParamsDataGrid.DataContext = null;
+                        mWindow.KeyDataGrid.DataContext = null;
+                        break;
                 }
 
 

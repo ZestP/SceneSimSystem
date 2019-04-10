@@ -19,6 +19,8 @@ namespace WPF场景仿真推演系统
     /// MainWindow.xaml 的交互逻辑
     /// </summary>
     /// 
+
+    
     public class KeyframeData
     {
         public string time { get; set; }
@@ -42,10 +44,13 @@ namespace WPF场景仿真推演系统
     public class UnitData
     {
         public string ID { get; set; }
+        public string name { get; set; }
         public string type{ get; set; }
-        public UnitData(string id, string t)
+        
+        public UnitData(string id, string n,string t)
         {
             ID = id;
+            name = n;
             type = t;
         }
     }
@@ -114,6 +119,7 @@ namespace WPF场景仿真推演系统
         private UnitManager mUnitMan;
         private bool isU3DLoaded = false;
         public Clock mClock;
+        
         public MainWindow()
         {
             InitializeComponent();
@@ -122,7 +128,14 @@ namespace WPF场景仿真推演系统
             WpfServer.BindRefs(mUnitMan);
             mClock = new Clock(100);
         }
-        
+        public MainWindow(InitData id)
+        {
+            InitializeComponent();
+            mUnitMan = new UnitManager(this);
+            WpfServer = new TcpServer();
+            WpfServer.BindRefs(mUnitMan);
+            mClock = new Clock(id.mTimeSpan);
+        }
         private int WindowEnum(IntPtr hwnd, IntPtr lparam)
         {
             unityHWND = hwnd;
@@ -181,7 +194,8 @@ namespace WPF场景仿真推演系统
             
             timeSlider.Maximum = mClock.TimeSpan;
             timeSlider.Value = mClock.CurrentTime;
-            timeIndicator.Content = $"{mClock.CurrentTime}/{mClock.TimeSpan}";
+            currentTimeIndicator.Content = $"{mClock.CurrentTime}";
+            maxTimeIndicator.Content = $"{mClock.TimeSpan}";
 
         }
 
@@ -190,7 +204,8 @@ namespace WPF场景仿真推演系统
             if (mClock.IsPlaying && mClock.CurrentTime < mClock.TimeSpan)
             {
                 mClock.CurrentTime += 1;
-                timeIndicator.Content = $"{(int)mClock.CurrentTime}/{(int)mClock.TimeSpan}";
+                currentTimeIndicator.Content = $"{mClock.CurrentTime}";
+                maxTimeIndicator.Content = $"{mClock.TimeSpan}";
                 timeSlider.Value = (int)mClock.CurrentTime;
             }
         }
@@ -219,6 +234,12 @@ namespace WPF场景仿真推演系统
             if (tmsg != null)
             {
                 Console.WriteLine("msgadd");
+                mUnitMan.ParseMsg(tmsg);
+            }
+            tmsg = WpfServer.GetMsg("Disselect");
+            if (tmsg != null)
+            {
+                Console.WriteLine("msgdissel");
                 mUnitMan.ParseMsg(tmsg);
             }
             //dispatcherTimer2.Start();
@@ -290,7 +311,22 @@ namespace WPF场景仿真推演系统
         }
         private void NewFile(object sender, RoutedEventArgs e)
         {
-            WpfServer.SendMessage("NewFile");
+            try
+            {
+
+                InitWindow iw = new InitWindow();
+                iw.Show();
+                while (process.HasExited == false)
+                    process.Kill();
+                //FreeConsole();
+                WpfServer.QuitServer();
+                this.Close();
+
+            }
+            catch (Exception)
+            {
+
+            }
         }
 
         private void ListBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
@@ -319,10 +355,7 @@ namespace WPF场景仿真推演系统
             ResizeU3D();
         }
 
-        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            
-        }
+        
 
         private void UnitsGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -347,14 +380,16 @@ namespace WPF场景仿真推演系统
         {
             if (mClock.IsPlaying) return;
             mClock.CurrentTime=(int)(timeSlider.Value);
-            timeIndicator.Content = $"{(int)mClock.CurrentTime}/{(int)mClock.TimeSpan}";
+            currentTimeIndicator.Content = $"{mClock.CurrentTime}";
+            maxTimeIndicator.Content = $"{mClock.TimeSpan}";
             WpfServer.SendMessage($"Timeleap {(int)mClock.CurrentTime}");
             mUnitMan.UpdateParamList();
         }
         private void Timeshift(int to)
         {
             mClock.CurrentTime = to;
-            timeIndicator.Content = $"{(int)mClock.CurrentTime}/{(int)mClock.TimeSpan}";
+            currentTimeIndicator.Content = $"{mClock.CurrentTime}";
+            maxTimeIndicator.Content = $"{mClock.TimeSpan}";
             timeSlider.Value = (int)mClock.CurrentTime;
             WpfServer.SendMessage($"Timeleap {(int)mClock.CurrentTime}");
             mUnitMan.UpdateParamList();
@@ -364,7 +399,17 @@ namespace WPF场景仿真推演系统
             string newKey=(e.Row.DataContext as ParamsData).name;
             string newValue = (e.EditingElement as TextBox).Text;
             float res;
-            if (!float.TryParse(newValue, out res)) { e.Cancel = true;return; }
+            
+            if (newKey == "名称")
+            {
+                mUnitMan.selUnit.mName = newValue;
+                
+                mUnitMan.UpdateDisplayList();
+                return;
+            }
+            UnitType ta;
+            if (newKey == "类型" && !UnitType.TryParse(newValue, out ta)) { e.Cancel = true; mUnitMan.UpdateParamList(); return; }
+            if (newKey != "类型"&&!float.TryParse(newValue, out res)) { e.Cancel = true; mUnitMan.UpdateParamList(); return; }
             Console.WriteLine(newValue);
             ObservableCollection<ParamsData> toc=ParamsDataGrid.DataContext as ObservableCollection<ParamsData>;
             string[] args = new string[5];
@@ -383,7 +428,9 @@ namespace WPF场景仿真推演系统
                     args[2] = toc[i].name == newKey ? newValue : toc[i].value;
                 }else if(toc[i].name=="类型")
                 {
-                    args[4] = toc[i].name == newKey ? newValue : toc[i].value;
+                    UnitType tmp= (UnitType)UnitType.Parse(typeof(UnitType), newValue);
+                    UnitType tmp2= (UnitType)UnitType.Parse(typeof(UnitType), toc[i].value);
+                    args[4] = toc[i].name == newKey ? ((int)tmp).ToString() : ((int)tmp2).ToString();
                 }
             }
             args[3] = mClock.CurrentTime.ToString();
@@ -402,9 +449,10 @@ namespace WPF场景仿真推演系统
                 WpfServer.SendMessage($"Add {mUnitMan.selUnit.mID} {args[0]} {args[1]} {args[2]} {args[3]} {args[4]}");
                 mUnitMan.selUnit.AddTarget(tp.X,tp.Y,tp.Z,tp.T);
             }
-            if(int.Parse(args[4])!=mUnitMan.selUnit.mType)
+            if(int.Parse(args[4])!=(int)mUnitMan.selUnit.mType)
             {
-                mUnitMan.selUnit.mType = int.Parse(args[4]);
+                mUnitMan.selUnit.mType = (UnitType)int.Parse(args[4]);
+                mUnitMan.UpdateDisplayList();
             }
             mUnitMan.UpdateKeyframeList();
             
@@ -453,6 +501,68 @@ namespace WPF场景仿真推演系统
                 Console.WriteLine(KeyDataGrid.SelectedIndex);
             }
             
+        }
+
+        private void LeftTabCtrl_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (e.Source is TabControl)
+            {
+                string ts = LeftTabCtrl.SelectedContent as string;
+                if (ts!="单位创建")
+                {
+                    UnitCreatorList.SelectedItem = null;
+                    WpfServer.SendMessage("Cancel");
+                    statusBar.Text = "就绪";
+                }
+            }
+        }
+
+        private void Exit(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
+
+        private void Version(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("场景仿真推演系统\n2015201123杨振华","版本信息",MessageBoxButton.OK);
+        }
+
+        private void OpenFile(object sender, RoutedEventArgs e)
+        {
+            System.Windows.Forms.OpenFileDialog ofd = new System.Windows.Forms.OpenFileDialog();
+            ofd.Filter = "场景配置文件(.SSS)|*.SSS";
+            ofd.CheckFileExists = true;
+            ofd.Multiselect = false;
+            if(ofd.ShowDialog()==System.Windows.Forms.DialogResult.OK)
+            {
+                foreach(string file in ofd.FileNames)
+                {
+                    Console.WriteLine(file);
+                }
+            }
+        }
+
+        private void SaveFile(object sender, RoutedEventArgs e)
+        {
+            System.Windows.Forms.FolderBrowserDialog openFileDialog = new System.Windows.Forms.FolderBrowserDialog();  //选择文件夹
+
+
+            if (openFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)//注意，此处一定要手动引入System.Window.Forms空间，否则你如果使用默认的DialogResult会发现没有OK属性
+            {
+                Console.WriteLine(openFileDialog.SelectedPath);
+            }
+
+        }
+
+        private void SaveAs(object sender, RoutedEventArgs e)
+        {
+            System.Windows.Forms.FolderBrowserDialog openFileDialog = new System.Windows.Forms.FolderBrowserDialog();  //选择文件夹
+
+
+            if (openFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)//注意，此处一定要手动引入System.Window.Forms空间，否则你如果使用默认的DialogResult会发现没有OK属性
+            {
+                Console.WriteLine(openFileDialog.SelectedPath);
+            }
         }
 
         private void PlaystateBtn_Click(object sender, RoutedEventArgs e)

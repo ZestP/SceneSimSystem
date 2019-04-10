@@ -1,0 +1,22 @@
+﻿<Window x:Class="WPF场景仿真推演系统.InitWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WPF场景仿真推演系统"
+        mc:Ignorable="d"
+        Title="初始设置" ResizeMode="NoResize" Width="210.36" Height="83.118">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Label Content="时长" VerticalAlignment="Center" HorizontalAlignment="Center"></Label>
+        <TextBox x:Name="timespanText" Text="100" Grid.Column="1" TextAlignment="Center" VerticalAlignment="Center" Margin="5,0" TextChanged="TextBox_TextChanged"></TextBox>
+        <Button Content="确认" Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" VerticalAlignment="Center" Click="Button_Click"/>
+    </Grid>
+</Window>

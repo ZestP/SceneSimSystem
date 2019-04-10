@@ -13,17 +13,18 @@ namespace WPF场景仿真推演系统
     {
         //私有成员
         private static byte[] result = new byte[1024];
-        private int myProt = 500;   //端口  
-        static Socket serverSocket;
-        static Socket clientSocket;
+        private int myPort = 500;   //端口  
+        public Socket serverSocket;
+        public Socket clientSocket;
 
         Thread myThread;
-        static Thread receiveThread;
+        public Thread receiveThread;
 
         //属性
         private UnitManager mUnitMan;
         public int port { get; set; }
         //方法
+
 
         public TcpServer()
         {
@@ -35,7 +36,7 @@ namespace WPF场景仿真推演系统
             //服务器IP地址  
             IPAddress ip = IPAddress.Parse("127.0.0.1");
             serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            serverSocket.Bind(new IPEndPoint(ip, myProt));  //绑定IP地址：端口  
+            serverSocket.Bind(new IPEndPoint(ip, myPort));  //绑定IP地址：端口  
             serverSocket.Listen(10);    //设定最多10个排队连接请求  
 
             Console.WriteLine("启动监听{0}成功", serverSocket.LocalEndPoint.ToString());
@@ -130,7 +131,7 @@ namespace WPF场景仿真推演系统
         void Parse(string raw)
         {
             List<string> tmp = new List<string>(raw.Split(' '));
-            if(tmp.Count>0&&tmp[0]=="Spawn"||tmp[0]=="Select"||tmp[0]=="Modify" || tmp[0] == "Add")
+            if(tmp.Count>0&&tmp[0]=="Spawn"||tmp[0]=="Select"||tmp[0]=="Modify" || tmp[0] == "Add"||tmp[0]=="Disselect")
             {
                 msgs.Enqueue(tmp);
             }

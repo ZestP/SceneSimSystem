@@ -60,8 +60,16 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Clock.cs" />
+    <Compile Include="InitData.cs" />
+    <Compile Include="InitWindow.xaml.cs">
+      <DependentUpon>InitWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UnitManager.cs" />
     <Compile Include="UnitProfile.cs" />
+    <Page Include="InitWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
