@@ -160,5 +160,40 @@ namespace WPF场景仿真推演系统
                 unitsDisplayList.Add(u.GetUnitData());
             }
         }
+
+        public List<string> Serialize()
+        {
+            List<string> ans = new List<string>();
+            foreach(UnitProfile up in units)
+            {
+                ans.Add($"{up.mID} {up.mName} {(int)up.mType} {up.mTargets.Count}");
+                ans.AddRange(up.Serialize());
+            }
+            return ans;
+        }
+        public void Deserialize(List<string> list)
+        {
+            if (list == null) return;
+            units.Clear();
+            for(int i=0;i<list.Count;i++)
+            {
+                string[] temp = list[i].Split(new char[] { ' ' });
+                if(temp.Length>0)
+                {
+                    AddUnit(int.Parse(temp[2]), "0", "0", "0");
+                    int tcount = int.Parse(temp[3]);
+                    units[units.Count - 1].mName = temp[1];
+                    units[units.Count - 1].ClearTargets();
+                    for (int j=0;j<tcount;j++)
+                    {
+                        i++;
+                        temp = list[i].Split(new char[] { ' ' });
+                        units[units.Count - 1].AddTarget(temp[1],temp[2],temp[3],int.Parse(temp[0]));
+                        i++;
+                        units[units.Count - 1].SetKeyframeMemo(list[i],int.Parse(temp[0]));
+                    }
+                }
+            }
+        }
     }
 }

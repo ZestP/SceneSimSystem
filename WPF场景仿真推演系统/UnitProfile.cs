@@ -13,9 +13,9 @@ namespace WPF场景仿真推演系统
         public UnitType mType;
         public int mID;
         public string mName;
-        private List<Position> mTargets;
+        public List<Position> mTargets;
         private Dictionary<int, int> mTimeDict;
-        private Dictionary<int, string> mTimeMemo;
+        public Dictionary<int, string> mTimeMemo;
         
         public MainWindow mWindow;
         public UnitProfile(int id, int type, MainWindow mw)
@@ -71,6 +71,7 @@ namespace WPF场景仿真推演系统
             RebuildTimeDict();
             
         }
+        
         public void TimeshiftTarget(int old,int now)
         {
             mTimeMemo[now] = mTimeMemo[old];
@@ -224,6 +225,16 @@ namespace WPF场景仿真推演系统
                 return false;
             }
             return true;
+        }
+        public List<string> Serialize()
+        {
+            List<string> ans = new List<string>();
+            foreach (Position p in mTargets)
+            {
+                ans.Add($"{p.T} {p.X} {p.Y} {p.Z}");
+                ans.Add(mTimeMemo[p.T]);
+            }
+            return ans;
         }
     }
 }

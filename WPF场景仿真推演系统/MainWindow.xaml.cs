@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
@@ -119,17 +120,11 @@ namespace WPF场景仿真推演系统
         private UnitManager mUnitMan;
         private bool isU3DLoaded = false;
         public Clock mClock;
-        
-        public MainWindow()
-        {
-            InitializeComponent();
-            mUnitMan = new UnitManager(this);
-            WpfServer = new TcpServer();
-            WpfServer.BindRefs(mUnitMan);
-            mClock = new Clock(100);
-        }
+
+        InitData mInitData;
         public MainWindow(InitData id)
         {
+            mInitData = id;
             InitializeComponent();
             mUnitMan = new UnitManager(this);
             WpfServer = new TcpServer();
@@ -359,7 +354,9 @@ namespace WPF场景仿真推演系统
 
         private void UnitsGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            if (UnitsGrid.SelectedItem == null) return;
             string selID = (UnitsGrid.SelectedItem as UnitData).ID;
+            mUnitMan.selUnit = mUnitMan.GetUnit(int.Parse(selID));
             WpfServer.SendMessage($"Select {selID}");
             LeftTabCtrl.SelectedIndex = 2;
         }
@@ -428,9 +425,8 @@ namespace WPF场景仿真推演系统
                     args[2] = toc[i].name == newKey ? newValue : toc[i].value;
                 }else if(toc[i].name=="类型")
                 {
-                    UnitType tmp= (UnitType)UnitType.Parse(typeof(UnitType), newValue);
                     UnitType tmp2= (UnitType)UnitType.Parse(typeof(UnitType), toc[i].value);
-                    args[4] = toc[i].name == newKey ? ((int)tmp).ToString() : ((int)tmp2).ToString();
+                    args[4] = ((int)tmp2).ToString();
                 }
             }
             args[3] = mClock.CurrentTime.ToString();
@@ -529,40 +525,55 @@ namespace WPF场景仿真推演系统
 
         private void OpenFile(object sender, RoutedEventArgs e)
         {
-            System.Windows.Forms.OpenFileDialog ofd = new System.Windows.Forms.OpenFileDialog();
-            ofd.Filter = "场景配置文件(.SSS)|*.SSS";
-            ofd.CheckFileExists = true;
-            ofd.Multiselect = false;
-            if(ofd.ShowDialog()==System.Windows.Forms.DialogResult.OK)
-            {
-                foreach(string file in ofd.FileNames)
-                {
-                    Console.WriteLine(file);
-                }
-            }
-        }
-
-        private void SaveFile(object sender, RoutedEventArgs e)
-        {
             System.Windows.Forms.FolderBrowserDialog openFileDialog = new System.Windows.Forms.FolderBrowserDialog();  //选择文件夹
-
+            openFileDialog.ShowNewFolderButton = true;
 
             if (openFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)//注意，此处一定要手动引入System.Window.Forms空间，否则你如果使用默认的DialogResult会发现没有OK属性
             {
                 Console.WriteLine(openFileDialog.SelectedPath);
+
+                tmpfilepath = openFileDialog.SelectedPath;
+                ScanFiles(tmpfilepath);
             }
 
+            
+
+            statusBar.Text = "载入成功";
+        }
+        string tmpfilepath = null;
+        private void SaveFile(object sender, RoutedEventArgs e)
+        {
+            if (tmpfilepath == null)
+            {
+                System.Windows.Forms.FolderBrowserDialog openFileDialog = new System.Windows.Forms.FolderBrowserDialog();  //选择文件夹
+                openFileDialog.ShowNewFolderButton = true;
+                if (openFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)//注意，此处一定要手动引入System.Window.Forms空间，否则你如果使用默认的DialogResult会发现没有OK属性
+                {
+                    Console.WriteLine(openFileDialog.SelectedPath);
+                    
+                    tmpfilepath = openFileDialog.SelectedPath;
+                }
+            }
+            ProduceFiles(tmpfilepath);
+            
+            statusBar.Text = "保存成功";
         }
 
         private void SaveAs(object sender, RoutedEventArgs e)
         {
             System.Windows.Forms.FolderBrowserDialog openFileDialog = new System.Windows.Forms.FolderBrowserDialog();  //选择文件夹
-
+            openFileDialog.ShowNewFolderButton = true;
 
             if (openFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)//注意，此处一定要手动引入System.Window.Forms空间，否则你如果使用默认的DialogResult会发现没有OK属性
             {
                 Console.WriteLine(openFileDialog.SelectedPath);
+
+                tmpfilepath = openFileDialog.SelectedPath;
             }
+
+            ProduceFiles(tmpfilepath);
+
+            statusBar.Text = "保存成功";
         }
 
         private void PlaystateBtn_Click(object sender, RoutedEventArgs e)
@@ -587,6 +598,76 @@ namespace WPF场景仿真推演系统
         private void Window_GotFocus(object sender, RoutedEventArgs e)
         {
             //ResizeU3D();
+        }
+
+
+        
+        List<string> LoadFile(string filePath, string fileName)
+        {//载入文件
+            
+            try
+            {
+                List<string> ans = new List<string>();
+                string name = filePath + '/' + fileName;
+                // Create an instance of StreamReader to read from a file.
+                // The using statement also closes the StreamReader.
+                using (StreamReader sr = new StreamReader(name))
+                {
+                    String line;
+                    // Read and display lines from the file until the end of 
+                    // the file is reached.
+                    while ((line = sr.ReadLine()) != null)
+                    {
+                        ans.Add(line);
+                    }
+                }
+                return ans;
+            }
+            catch (Exception e)
+            {
+                
+                // Let the user know what went wrong.
+                Console.WriteLine("The file could not be read:");
+                Console.WriteLine(e.Message);
+                return null;
+            }
+        }
+        
+        void ScanFiles(string filePath)
+        {
+            mInitData.Deserialize(LoadFile(filePath, "InitSettings.sss"));
+            mUnitMan.Deserialize(LoadFile(filePath, "UnitList.sss"));
+            mUnitMan.UpdateParamList();
+            mUnitMan.UpdateDisplayList();
+            mUnitMan.UpdateKeyframeList();
+        }
+        
+        void WriteFile(string filePath,string fileName,List<string> content)
+        {//写入文件
+            string name = filePath + '/' + fileName;
+            StreamWriter sw;
+            FileInfo t = new FileInfo(name);
+            if (!t.Exists)
+            {
+                //Debug.Log("writing");
+                sw = t.CreateText();
+            }
+            else
+            {
+                //Debug.Log("Rewriting");
+                t.Delete();
+                sw = t.CreateText();
+            }
+
+            foreach (string s in content)
+                sw.WriteLine(s);
+            sw.Close();
+            sw.Dispose();
+        }
+        void ProduceFiles(string filePath)
+        {//写入文件内容
+            WriteFile(filePath, "InitSettings.sss", mInitData.Serialize());
+            WriteFile(filePath, "UnitList.sss", mUnitMan.Serialize());
         }
     }
 
