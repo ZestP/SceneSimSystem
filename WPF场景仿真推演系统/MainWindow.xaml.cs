@@ -329,9 +329,20 @@ namespace WPF场景仿真推演系统
             ListBoxItem ts = (UnitCreatorList.SelectedItem as ListBoxItem);
             if (ts != null)
             {
-                statusBar.Text = $"Select {ts.Content.ToString()}";
-                WpfServer.SendMessage("Spawn DD");
-                statusBar.Text = "按ESC键退出创建模式";
+                string con=ts.Content as string;
+                Console.WriteLine(con);
+                if (con=="驱逐舰")
+                {
+                    statusBar.Text = $"Select {ts.Content.ToString()}";
+                    WpfServer.SendMessage("Spawn DD");
+                    statusBar.Text = "按ESC键退出创建模式";
+                }else if(con=="摄像机")
+                {
+                    statusBar.Text = $"Select {ts.Content.ToString()}";
+                    WpfServer.SendMessage("Spawn Camera");
+                    statusBar.Text = "按ESC键退出创建模式";
+                }
+                
             }
         }
 

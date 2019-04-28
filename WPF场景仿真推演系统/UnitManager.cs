@@ -91,6 +91,11 @@ namespace WPF场景仿真推演系统
                                 int uid = AddUnit(0,msg[3],msg[4],msg[5]);
                                 UpdateDisplayList();
                                 break;
+                            case "Camera":
+                                Console.WriteLine("PArsing Cam");
+                                uid = AddUnit(1, msg[3], msg[4], msg[5]);
+                                UpdateDisplayList();
+                                break;
                             default:
                                 break;
                         }

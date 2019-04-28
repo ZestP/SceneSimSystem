@@ -6,7 +6,7 @@ namespace WPF场景仿真推演系统
 {
     public enum UnitType
     {
-        驱逐舰,潜艇
+        驱逐舰,摄像机
     }
     public class UnitProfile
     {
