@@ -7,17 +7,20 @@ using System.Threading.Tasks;
 
 namespace WPF场景仿真推演系统
 {
-    class UnitManager
+    public class UnitManager
     {
         private List<UnitProfile> units;
         private List<bool> unitAvability;
         public ObservableCollection<UnitData> unitsDisplayList;
+        
         public MainWindow mWindow;
         public UnitProfile selUnit;
+        public CamManager mCamMan;
         public UnitManager(MainWindow mw)
         {
             selUnit = null;
             mWindow = mw;
+            mCamMan = new CamManager(mw);
             units = new List<UnitProfile>();
             unitAvability = new List<bool>();
             unitsDisplayList = new ObservableCollection<UnitData>();
@@ -57,8 +60,11 @@ namespace WPF场景仿真推演系统
         }
         private UnitProfile SpawnUnit(int ID,int type)
         {
-
-            UnitProfile tup = new UnitProfile(ID,type,mWindow);
+            UnitProfile tup = null;
+            if (type==0)
+                tup = new UnitProfile(ID,type,mWindow);
+            else if(type==1)
+                tup = new CameraProfile(ID, type, mWindow);
             return tup;
         }
 
@@ -88,21 +94,23 @@ namespace WPF场景仿真推演系统
                         {
                             case "DD":
                                 Console.WriteLine("PArsing");
-                                int uid = AddUnit(0,msg[3],msg[4],msg[5]);
+                                int uid = AddUnit(0, msg[3], msg[4], msg[5]);
                                 UpdateDisplayList();
+                                UpdateCamList();
                                 break;
                             case "Camera":
                                 Console.WriteLine("PArsing Cam");
                                 uid = AddUnit(1, msg[3], msg[4], msg[5]);
                                 UpdateDisplayList();
+                                UpdateCamList();
                                 break;
                             default:
                                 break;
                         }
                         break;
                     case "Select":
-                        
-                        selUnit=GetUnit(int.Parse(msg[1]));
+
+                        selUnit = GetUnit(int.Parse(msg[1]));
                         UpdateKeyframeList();
                         UpdateParamList();
                         mWindow.LeftTabCtrl.SelectedIndex = 2;
@@ -110,11 +118,19 @@ namespace WPF场景仿真推演系统
                     case "Modify":
 
                         selUnit = GetUnit(int.Parse(msg[1]));
+
                         Position tp = new Position();
+
                         tp.X = msg[2];
                         tp.Y = msg[3];
                         tp.Z = msg[4];
                         tp.T = int.Parse(msg[5]);
+                        if (selUnit.canRotate)
+                        {
+                            tp.RotX = msg[6];
+                            tp.RotY = msg[7];
+                            tp.RotZ = msg[8];
+                        }
                         selUnit.ModifyTarget(tp);
                         UpdateKeyframeList();
                         UpdateParamList();
@@ -127,7 +143,15 @@ namespace WPF场景仿真推演系统
                         tp2.Y = msg[3];
                         tp2.Z = msg[4];
                         tp2.T = int.Parse(msg[5]);
-                        selUnit.AddTarget(tp2.X,tp2.Y,tp2.Z,tp2.T);
+                        if (selUnit.canRotate)
+                        {
+                            tp2.RotX = msg[6];
+                            tp2.RotY = msg[7];
+                            tp2.RotZ = msg[8];
+                            selUnit.AddTarget(tp2.X, tp2.Y, tp2.Z, tp2.T,tp2.RotX,tp2.RotY,tp2.RotZ);
+                        }
+                        else { selUnit.AddTarget(tp2.X, tp2.Y, tp2.Z, tp2.T); }
+                        
                         UpdateKeyframeList();
                         UpdateParamList();
                         break;
@@ -165,6 +189,20 @@ namespace WPF场景仿真推演系统
                 unitsDisplayList.Add(u.GetUnitData());
             }
         }
+        public void UpdateCamList()
+        {
+            camList.Clear();
+            foreach (UnitProfile u in units)
+            {
+                if(u is CameraProfile)
+                {
+                    camList.Add(u.mID.ToString());
+                }
+            }
+            
+        }
+        public static List<string> camList = new List<string>();
+        
 
         public List<string> Serialize()
         {

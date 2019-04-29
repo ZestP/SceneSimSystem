@@ -55,6 +55,12 @@ namespace WPF场景仿真推演系统
             type = t;
         }
     }
+    public class DopesheetData
+    {
+        public string time { get; set; }
+        public string camid { get; set; }
+        public string camname { get; set; }
+    }
     public class DPIUtils
     {
         private static double _dpiX = 1.0;
@@ -117,7 +123,7 @@ namespace WPF场景仿真推演系统
         private Point u3dLeftUpPos;
 
         internal TcpServer WpfServer { get; private set; }
-        private UnitManager mUnitMan;
+        public UnitManager mUnitMan;
         private bool isU3DLoaded = false;
         public Clock mClock;
 
@@ -191,7 +197,8 @@ namespace WPF场景仿真推演系统
             timeSlider.Value = mClock.CurrentTime;
             currentTimeIndicator.Content = $"{mClock.CurrentTime}";
             maxTimeIndicator.Content = $"{mClock.TimeSpan}";
-
+            camid.ItemsSource = UnitManager.camList;
+            
         }
 
         private void ClockUpdate(object sender, EventArgs e)
@@ -653,6 +660,65 @@ namespace WPF场景仿真推演系统
             mUnitMan.UpdateKeyframeList();
         }
         
+        private void Run(object sender, RoutedEventArgs e)
+        {
+            Timeshift(0);
+            mClock.IsPlaying = true;
+            PlaystateBtn.Content = "暂停";
+            WpfServer.SendMessage("Play");
+            LeftPanels.IsEnabled = false;
+        }
+
+        private void OnDopeSheetNew(object sender, RoutedEventArgs e)
+        {
+            if (UnitManager.camList.Count > 0)
+            {
+                mUnitMan.mCamMan.AddTarget(int.Parse(UnitManager.camList[0]), (int)mClock.CurrentTime);
+                mUnitMan.mCamMan.UpdateDopesheet();
+            }
+            else
+            {
+                MessageBox.Show("请先创建摄像机！", "错误", MessageBoxButton.OK);
+            }
+        }
+
+        private void DopesheetGrid_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
+        {
+            if(mUnitMan.mCamMan!=null)
+            {
+                if ((e.Column.Header as string) == "摄像机ID")
+                {
+                    string oldValue = (e.Row.DataContext as DopesheetData).camid;
+                    string newValue = (e.EditingElement as ComboBox).Text;
+                    string newKey = (e.Row.DataContext as DopesheetData).time;
+                    mUnitMan.mCamMan.ModifyTarget(new CamManager.CamKey(int.Parse(newValue),int.Parse(newKey)));
+                    mUnitMan.mCamMan.UpdateDopesheet();
+                }
+                else if ((e.Column.Header as string) == "开始时刻")
+                {
+                    string oldValue = (e.Row.DataContext as DopesheetData).time;
+                    string newValue = (e.EditingElement as TextBox).Text;
+                    Console.WriteLine(oldValue + " " + newValue);
+                    int tmp;
+                    if (oldValue == newValue) return;
+                    if (!int.TryParse(newValue, out tmp)) { e.Cancel = true; return; }
+                    if (mUnitMan.mCamMan.ContainsTargetAtSameTime(tmp))
+                    {
+                        Console.WriteLine("SWAP KEYS");
+                        //WpfServer.SendMessage($"SwapKey {mUnitMan.selUnit.mID} {oldValue} {newValue}");
+                        mUnitMan.mCamMan.SwapTime(int.Parse(oldValue), int.Parse(newValue));
+                    }
+                    else
+                    {
+                        //WpfServer.SendMessage($"Timeshift {mUnitMan.selUnit.mID} {oldValue} {newValue}");
+                        mUnitMan.mCamMan.TimeshiftTarget(int.Parse(oldValue), int.Parse(newValue));
+                    }
+                    mUnitMan.mCamMan.UpdateDopesheet();
+                }
+            }
+            
+        }
+
         void WriteFile(string filePath,string fileName,List<string> content)
         {//写入文件
             string name = filePath + '/' + fileName;

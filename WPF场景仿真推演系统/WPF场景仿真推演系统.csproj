@@ -59,11 +59,14 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="CameraProfile.cs" />
+    <Compile Include="CamManager.cs" />
     <Compile Include="Clock.cs" />
     <Compile Include="InitData.cs" />
     <Compile Include="InitWindow.xaml.cs">
       <DependentUpon>InitWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Quaternion.cs" />
     <Compile Include="UnitManager.cs" />
     <Compile Include="UnitProfile.cs" />
     <Page Include="InitWindow.xaml">

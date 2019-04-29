@@ -34,7 +34,7 @@
                 <Button Content="保存" Click="SaveFile"></Button>
                 <Button Content="另存为" Click="SaveAs"></Button>
                 <Separator/>
-
+                <Button Content="脚本预演" Click="Run"></Button>
             </ToolBar>
 
             <StatusBar DockPanel.Dock="Bottom" VerticalAlignment="Bottom" Background="#FF007ACC">
@@ -92,7 +92,7 @@
                                 </Grid.RowDefinitions>
                                 
                                
-                                    <Expander Grid.Row="0" Header="属性" Background="White" Margin="0">
+                                    <Expander Grid.Row="0" Header="属性" Background="White" Margin="0" IsExpanded="True">
                                         <DataGrid x:Name="ParamsDataGrid" Grid.Row="1" ItemsSource="{Binding}" AutoGenerateColumns="False" CellEditEnding="ParamsDataGrid_CellEditEnding">
                                             <DataGrid.Columns>
 
@@ -104,7 +104,7 @@
                                         </DataGrid>
                                     </Expander>
 
-                                <Expander Header="流程" Grid.Row="1" Background="White">
+                                <Expander Header="流程" Grid.Row="1" Background="White" IsExpanded="True">
                                     <DataGrid x:Name="KeyDataGrid" Grid.Row="1" ItemsSource="{Binding}" AutoGenerateColumns="False" CellEditEnding="KeyDataGrid_CellEditEnding" SelectionChanged="KeyDataGrid_SelectionChanged">
                                         <DataGrid.Columns>
 
@@ -125,29 +125,26 @@
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
+                                <Expander Header="摄影表" Grid.Row="1" Background="White" IsExpanded="True">
+                                    <Grid Background="#FFEEEEEE">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <DataGrid x:Name="DopesheetGrid" ItemsSource="{Binding}" AutoGenerateColumns="False" CellEditEnding="DopesheetGrid_CellEditEnding" CanUserAddRows="False">
+                                            <DataGrid.Columns>
 
-                                <Expander Grid.Row="0" Header="属性" Background="White" Margin="0">
-                                    <DataGrid Grid.Row="1" ItemsSource="{Binding}" AutoGenerateColumns="False" CellEditEnding="ParamsDataGrid_CellEditEnding">
-                                        <DataGrid.Columns>
+                                                <DataGridTextColumn Binding="{Binding time}" CanUserSort="False" Header="开始时刻"/>
+                                                <DataGridComboBoxColumn x:Name="camid" SelectedItemBinding="{Binding camid}"  Header="摄像机ID">
 
-                                            <DataGridTextColumn Binding="{Binding name}" CanUserSort="False" Header="名称" IsReadOnly="True"/>
-                                            <DataGridTextColumn Binding="{Binding value}" Header="值"/>
+                                                </DataGridComboBoxColumn>
 
-                                        </DataGrid.Columns>
+                                                <DataGridTextColumn Binding="{Binding camname}" CanUserSort="False" Header="摄像机名称" IsReadOnly="True"/>
+                                            </DataGrid.Columns>
 
-                                    </DataGrid>
-                                </Expander>
-
-                                <Expander Header="流程" Grid.Row="1" Background="White">
-                                    <DataGrid Grid.Row="1" ItemsSource="{Binding}" AutoGenerateColumns="False" CellEditEnding="KeyDataGrid_CellEditEnding" SelectionChanged="KeyDataGrid_SelectionChanged">
-                                        <DataGrid.Columns>
-
-                                            <DataGridTextColumn Binding="{Binding time}" CanUserSort="False" Header="时刻"/>
-                                            <DataGridTextColumn Binding="{Binding action}" Header="动作"/>
-
-                                        </DataGrid.Columns>
-
-                                    </DataGrid>
+                                        </DataGrid>
+                                        <Button Content="新建项" Grid.Row="1" Click="OnDopeSheetNew"></Button>
+                                    </Grid>
                                 </Expander>
 
                             </Grid>

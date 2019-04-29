@@ -12,11 +12,12 @@ namespace WPF场景仿真推演系统
     {
         public UnitType mType;
         public int mID;
+        public int mTeam;
         public string mName;
         public List<Position> mTargets;
-        private Dictionary<int, int> mTimeDict;
+        protected Dictionary<int, int> mTimeDict;
         public Dictionary<int, string> mTimeMemo;
-        
+        public bool canRotate;
         public MainWindow mWindow;
         public UnitProfile(int id, int type, MainWindow mw)
         {
@@ -26,6 +27,35 @@ namespace WPF场景仿真推演系统
             mID = id;
             mName = $"{mType}_{mID}";
             mTimeMemo = new Dictionary<int, string>();
+            canRotate = false;
+        }
+
+        public void AddTarget(string x,string y,string z,int t,string rx,string ry,string rz)
+        {
+            Position target = new Position();
+            target.X = x;
+            target.Y = y;
+            target.Z = z;
+            target.T = t;
+            target.RotX = rx;
+            target.RotY = ry;
+            target.RotZ = rz;
+            Console.WriteLine("Add Target at" + target.X + ' ' + target.Y + ' ' + target.Z + ' ' + target.T+' '+target.RotX+' '+target.RotY+' '+target.RotZ);
+            if (mTargets == null)
+                mTargets = new List<Position>();
+
+            mTargets.Add(target);
+            mTargets.Sort((left, right) =>
+            {
+                if (left.T < right.T)
+                    return -1;
+                else if (left.T == right.T)
+                    return 0;
+                else
+                    return 1;
+            });
+            mTimeMemo[t] = "请添加流程说明……";
+            RebuildTimeDict();
         }
         public void AddTarget(string x, string y, string z, int t)
         {
@@ -34,6 +64,12 @@ namespace WPF场景仿真推演系统
             target.Y = y;
             target.Z = z;
             target.T = t;
+            if(canRotate)
+            {
+                target.RotX = "0";
+                target.RotY = "0";
+                target.RotZ = "0";
+            }
             Console.WriteLine("Add Target at" + target.X + ' ' + target.Y + ' ' + target.Z + ' ' + target.T);
             if (mTargets == null)
                 mTargets = new List<Position>();
@@ -125,7 +161,7 @@ namespace WPF场景仿真推演系统
             string typestr = mType.ToString();
             return new UnitData(mID.ToString(), mName,typestr);
         }
-        public ObservableCollection<ParamsData> GetParamsAtTime(int time)
+        public virtual ObservableCollection<ParamsData> GetParamsAtTime(int time)
         {
             if (mTimeDict.ContainsKey(time))
             {
@@ -160,6 +196,12 @@ namespace WPF场景仿真推演系统
                 ans.X = mTargets[0].X;
                 ans.Y = mTargets[0].Y;
                 ans.Z = mTargets[0].Z;
+                if(canRotate)
+                {
+                    ans.RotX = mTargets[0].RotX;
+                    ans.RotY = mTargets[0].RotY;
+                    ans.RotZ = mTargets[0].RotZ;
+                }
             }
             else if (mTargets.Count > 1)
             {
@@ -172,12 +214,24 @@ namespace WPF场景仿真推演系统
                     ans.X = (float.Parse(mTargets[currentTargetPtr].X) * (1 - div) + float.Parse(mTargets[currentTargetPtr + 1].X) * div).ToString();
                     ans.Y = (float.Parse(mTargets[currentTargetPtr].Y) * (1 - div) + float.Parse(mTargets[currentTargetPtr + 1].Y) * div).ToString();
                     ans.Z = (float.Parse(mTargets[currentTargetPtr].Z) * (1 - div) + float.Parse(mTargets[currentTargetPtr + 1].Z) * div).ToString();
+                    if (canRotate)
+                    {
+                        ans.RotX = mTargets[currentTargetPtr].RotX;
+                        ans.RotY = mTargets[currentTargetPtr].RotY;
+                        ans.RotZ = mTargets[currentTargetPtr].RotZ;
+                    }
                 }
                 else
                 {
                     ans.X = mTargets[currentTargetPtr].X;
                     ans.Y = mTargets[currentTargetPtr].Y;
                     ans.Z = mTargets[currentTargetPtr].Z;
+                    if (canRotate)
+                    {
+                        ans.RotX = mTargets[currentTargetPtr].RotX;
+                        ans.RotY = mTargets[currentTargetPtr].RotY;
+                        ans.RotZ = mTargets[currentTargetPtr].RotZ;
+                    }
                 }
             }
             Console.WriteLine($"{currentTargetPtr} {time}");
