@@ -66,7 +66,8 @@ namespace WPF场景仿真推演系统
         internal void SendMessage(string msg)
         {
             if (clientSocket != null)
-                clientSocket.Send(Encoding.UTF8.GetBytes(msg));
+                clientSocket.Send(Encoding.UTF8.GetBytes(msg+" \\"));
+            
         }
 
 
@@ -148,7 +149,7 @@ namespace WPF场景仿真推演系统
             //    s += '\n';
             //}
             List<string> result = null;
-            while (msgs.Count > 0 && msgs.Peek()[0] == dedicated)
+            if (msgs.Count > 0 && msgs.Peek()[0] == dedicated)
             {
                 result = msgs.Dequeue();
             }

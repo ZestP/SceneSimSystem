@@ -70,6 +70,9 @@
 
                                     <ListBoxItem Content="驱逐舰" HorizontalAlignment="Left" VerticalAlignment="Center"></ListBoxItem>
                                     <ListBoxItem Content="摄像机" HorizontalAlignment="Left" VerticalAlignment="Center"></ListBoxItem>
+                                    <ListBoxItem Content="战列舰" HorizontalAlignment="Left" VerticalAlignment="Center"></ListBoxItem>
+                                    <ListBoxItem Content="航空母舰" HorizontalAlignment="Left" VerticalAlignment="Center"></ListBoxItem>
+                                    <ListBoxItem Content="炮弹" HorizontalAlignment="Left" VerticalAlignment="Center"></ListBoxItem>
                                 </ListBox>
                             </Grid>
                         </TabItem>

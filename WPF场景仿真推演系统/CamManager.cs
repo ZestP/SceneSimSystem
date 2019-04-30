@@ -79,7 +79,7 @@ namespace WPF场景仿真推演系统
 
         public void TimeshiftTarget(int old, int now)
         {
-            mCamKeys[now] = mCamKeys[old];
+            
 
             mCamKeys[mTimeDict[old]].T = now;
             mCamKeys.Sort((left, right) =>
@@ -118,6 +118,15 @@ namespace WPF场景仿真推演系统
             {
                 mTimeDict.Add(mCamKeys[i].T, i);
             }
+        }
+        public List<string> PrepareDopesheetCmd()
+        {
+            List<string> ans = new List<string>();
+            for(int i=0;i<mCamKeys.Count;i++)
+            {
+                ans.Add($"Dopesheet {mCamKeys[i].Camid} {mCamKeys[i].T}");
+            }
+            return ans;
         }
         public bool ContainsTargetAtSameTime(int b)
         {

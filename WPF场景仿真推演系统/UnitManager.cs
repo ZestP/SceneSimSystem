@@ -61,9 +61,9 @@ namespace WPF场景仿真推演系统
         private UnitProfile SpawnUnit(int ID,int type)
         {
             UnitProfile tup = null;
-            if (type==0)
-                tup = new UnitProfile(ID,type,mWindow);
-            else if(type==1)
+            if (type == 0||type==2||type==3||type==4)
+                tup = new UnitProfile(ID, type, mWindow);
+            else if (type == 1)
                 tup = new CameraProfile(ID, type, mWindow);
             return tup;
         }
@@ -101,6 +101,24 @@ namespace WPF场景仿真推演系统
                             case "Camera":
                                 Console.WriteLine("PArsing Cam");
                                 uid = AddUnit(1, msg[3], msg[4], msg[5]);
+                                UpdateDisplayList();
+                                UpdateCamList();
+                                break;
+                            case "BB":
+                                Console.WriteLine("PArsing");
+                                uid = AddUnit(2, msg[3], msg[4], msg[5]);
+                                UpdateDisplayList();
+                                UpdateCamList();
+                                break;
+                            case "CV":
+                                Console.WriteLine("PArsing");
+                                uid = AddUnit(3, msg[3], msg[4], msg[5]);
+                                UpdateDisplayList();
+                                UpdateCamList();
+                                break;
+                            case "Shell":
+                                Console.WriteLine("PArsing");
+                                uid = AddUnit(4, msg[3], msg[4], msg[5]);
                                 UpdateDisplayList();
                                 UpdateCamList();
                                 break;

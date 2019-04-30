@@ -6,7 +6,7 @@ namespace WPF场景仿真推演系统
 {
     public enum UnitType
     {
-        驱逐舰,摄像机
+        驱逐舰,摄像机,战列舰,航空母舰,炮弹
     }
     public class UnitProfile
     {
@@ -187,7 +187,7 @@ namespace WPF场景仿真推演系统
             }
         }
 
-        Position Move(int time)
+        protected Position Move(int time)
         {
             Position ans = new Position();
             int currentTargetPtr = 0;

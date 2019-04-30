@@ -349,7 +349,25 @@ namespace WPF场景仿真推演系统
                     WpfServer.SendMessage("Spawn Camera");
                     statusBar.Text = "按ESC键退出创建模式";
                 }
-                
+                else if (con == "战列舰")
+                {
+                    statusBar.Text = $"Select {ts.Content.ToString()}";
+                    WpfServer.SendMessage("Spawn BB");
+                    statusBar.Text = "按ESC键退出创建模式";
+                }
+                else if (con == "航空母舰")
+                {
+                    statusBar.Text = $"Select {ts.Content.ToString()}";
+                    WpfServer.SendMessage("Spawn CV");
+                    statusBar.Text = "按ESC键退出创建模式";
+                }
+                else if (con == "炮弹")
+                {
+                    statusBar.Text = $"Select {ts.Content.ToString()}";
+                    WpfServer.SendMessage("Spawn Shell");
+                    statusBar.Text = "按ESC键退出创建模式";
+                }
+
             }
         }
 
@@ -665,7 +683,10 @@ namespace WPF场景仿真推演系统
             Timeshift(0);
             mClock.IsPlaying = true;
             PlaystateBtn.Content = "暂停";
-            WpfServer.SendMessage("Play");
+            List<string> cmd = mUnitMan.mCamMan.PrepareDopesheetCmd();
+            foreach (string s in cmd)
+                WpfServer.SendMessage(s);
+            WpfServer.SendMessage("Run");
             LeftPanels.IsEnabled = false;
         }
 
