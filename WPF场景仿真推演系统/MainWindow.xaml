@@ -64,9 +64,23 @@
                                         <ColumnDefinition/>
                                     </Grid.ColumnDefinitions>
                                     <Label Content="搜索" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <TextBox VerticalAlignment="Center" Grid.Column="1" VerticalContentAlignment="Center" HorizontalContentAlignment="Stretch" Margin="0,0,5,0"/>
+                                    <TextBox VerticalAlignment="Center" Grid.Column="1" VerticalContentAlignment="Center" HorizontalContentAlignment="Stretch"/>
                                 </Grid>
-                                <ListBox x:Name="UnitCreatorList" Grid.Row="1" Margin="5" SelectionChanged="ListBox_SelectionChanged">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition/>
+                                    </Grid.ColumnDefinitions>
+                                    <Label Content="队伍" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
+                                    <ComboBox VerticalAlignment="Center" Grid.Column="1" VerticalContentAlignment="Center" HorizontalContentAlignment="Stretch" SelectedIndex="0">
+                                        <ComboBoxItem Content="0"/>
+                                        <ComboBoxItem Content="1"/>
+                                        <ComboBoxItem Content="2"/>
+                                        <ComboBoxItem Content="3"/>
+                                        <ComboBoxItem Content="4"/>
+                                    </ComboBox>
+                                </Grid>
+                                <ListBox x:Name="UnitCreatorList" Grid.Row="1" SelectionChanged="ListBox_SelectionChanged" Visibility="Collapsed">
 
                                     <ListBoxItem Content="驱逐舰" HorizontalAlignment="Left" VerticalAlignment="Center"></ListBoxItem>
                                     <ListBoxItem Content="摄像机" HorizontalAlignment="Left" VerticalAlignment="Center"></ListBoxItem>
@@ -74,10 +88,19 @@
                                     <ListBoxItem Content="航空母舰" HorizontalAlignment="Left" VerticalAlignment="Center"></ListBoxItem>
                                     <ListBoxItem Content="炮弹" HorizontalAlignment="Left" VerticalAlignment="Center"></ListBoxItem>
                                 </ListBox>
+                                <TreeView x:Name="UnitCreatorTree" Grid.Row="1" SelectedItemChanged="TreeView_SelectedItemChanged">
+                                    <TreeViewItem Header="舰艇">
+                                        <TreeViewItem Header="驱逐舰"/>
+                                        <TreeViewItem Header="战列舰"/>
+                                        <TreeViewItem Header="航空母舰"/>
+                                    </TreeViewItem>
+                                    <TreeViewItem Header="摄像机"/>
+
+                                </TreeView>
                             </Grid>
                         </TabItem>
                         <TabItem Header="单位管理">
-                            <DataGrid x:Name="UnitsGrid" Grid.Row="1" ItemsSource="{Binding}" AutoGenerateColumns="False" SelectionChanged="UnitsGrid_SelectionChanged">
+                            <DataGrid x:Name="UnitsGrid" Grid.Row="1" ItemsSource="{Binding}" AutoGenerateColumns="False" SelectionChanged="UnitsGrid_SelectionChanged" CanUserDeleteRows="False" PreviewKeyDown="DisableDeleteInDataGrid">
                                 <DataGrid.Columns>
 
                                     <DataGridTextColumn Binding="{Binding ID}" CanUserSort="False" Header="编号" IsReadOnly="True"/>
@@ -88,27 +111,29 @@
                             </DataGrid>
                         </TabItem>
                         <TabItem Header="属性编辑">
-                            <Grid Background="#FFEEEEEE">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-                                
-                               
-                                    <Expander Grid.Row="0" Header="属性" Background="White" Margin="0" IsExpanded="True">
-                                        <DataGrid x:Name="ParamsDataGrid" Grid.Row="1" ItemsSource="{Binding}" AutoGenerateColumns="False" CellEditEnding="ParamsDataGrid_CellEditEnding">
-                                            <DataGrid.Columns>
+                            <StackPanel Background="#FFEEEEEE" CanVerticallyScroll="True">
+                                <Expander Grid.Row="0" Header="属性" Background="White" Margin="0" IsExpanded="True">
+                                    <DataGrid x:Name="ParamsDataGrid" Grid.Row="1" ItemsSource="{Binding}" AutoGenerateColumns="False" CellEditEnding="ParamsDataGrid_CellEditEnding" PreviewKeyDown="DisableDeleteInDataGrid">
+                                        <DataGrid.Columns>
 
-                                                <DataGridTextColumn Binding="{Binding name}" CanUserSort="False" Header="名称" IsReadOnly="True"/>
-                                                <DataGridTextColumn Binding="{Binding value}" Header="值"/>
+                                            <DataGridTextColumn Binding="{Binding name}" CanUserSort="False" Header="名称" IsReadOnly="True"/>
+                                            <DataGridTextColumn Binding="{Binding value}" Header="值"/>
 
-                                            </DataGrid.Columns>
+                                        </DataGrid.Columns>
 
-                                        </DataGrid>
-                                    </Expander>
+                                    </DataGrid>
+                                </Expander>
+                                <Expander Header="动作" Grid.Row="1" Background="White" IsExpanded="True">
+                                    <StackPanel Background="#FFEEEEEE" >
+                                        <Button Content="发射鱼雷" Margin="0,0,0,5"></Button>
+                                        <Button Content="开炮" Margin="0,0,0,5"></Button>
+                                        <Button Content="删除" Margin="0,0,0,5" Background="Red" Foreground="White"/>
+                                    </StackPanel>
 
+
+                                </Expander>
                                 <Expander Header="流程" Grid.Row="1" Background="White" IsExpanded="True">
-                                    <DataGrid x:Name="KeyDataGrid" Grid.Row="1" ItemsSource="{Binding}" AutoGenerateColumns="False" CellEditEnding="KeyDataGrid_CellEditEnding" SelectionChanged="KeyDataGrid_SelectionChanged">
+                                    <DataGrid x:Name="KeyDataGrid" Grid.Row="1" ItemsSource="{Binding}" AutoGenerateColumns="False" CellEditEnding="KeyDataGrid_CellEditEnding" KeyDown="DisableDeleteInDataGrid" PreviewKeyDown="DisableDeleteInDataGrid">
                                         <DataGrid.Columns>
 
                                             <DataGridTextColumn Binding="{Binding time}" CanUserSort="False" Header="时刻"/>
@@ -119,7 +144,10 @@
                                     </DataGrid>
                                 </Expander>
 
-                            </Grid>
+                            </StackPanel>
+                                
+                               
+                                
                         </TabItem>
                         <TabItem Header="分镜编辑">
                             <Grid Background="#FFEEEEEE">
@@ -134,7 +162,7 @@
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <DataGrid x:Name="DopesheetGrid" ItemsSource="{Binding}" AutoGenerateColumns="False" CellEditEnding="DopesheetGrid_CellEditEnding" CanUserAddRows="False">
+                                        <DataGrid x:Name="DopesheetGrid" ItemsSource="{Binding}" AutoGenerateColumns="False" CellEditEnding="DopesheetGrid_CellEditEnding" CanUserAddRows="False" PreviewKeyDown="DisableDeleteInDataGrid">
                                             <DataGrid.Columns>
 
                                                 <DataGridTextColumn Binding="{Binding time}" CanUserSort="False" Header="开始时刻"/>

@@ -740,6 +740,59 @@ namespace WPF场景仿真推演系统
             
         }
 
+        private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            TreeViewItem ts = (UnitCreatorTree.SelectedItem as TreeViewItem);
+            if (ts != null)
+            {
+                string con = ts.Header as string;
+                Console.WriteLine(con);
+                if (con == "驱逐舰")
+                {
+                    statusBar.Text = $"Select {ts.Header.ToString()}";
+                    WpfServer.SendMessage("Spawn DD");
+                    statusBar.Text = "按ESC键退出创建模式";
+                }
+                else if (con == "摄像机")
+                {
+                    statusBar.Text = $"Select {ts.Header.ToString()}";
+                    WpfServer.SendMessage("Spawn Camera");
+                    statusBar.Text = "按ESC键退出创建模式";
+                }
+                else if (con == "战列舰")
+                {
+                    statusBar.Text = $"Select {ts.Header.ToString()}";
+                    WpfServer.SendMessage("Spawn BB");
+                    statusBar.Text = "按ESC键退出创建模式";
+                }
+                else if (con == "航空母舰")
+                {
+                    statusBar.Text = $"Select {ts.Header.ToString()}";
+                    WpfServer.SendMessage("Spawn CV");
+                    statusBar.Text = "按ESC键退出创建模式";
+                }
+                else if (con == "炮弹")
+                {
+                    statusBar.Text = $"Select {ts.Header.ToString()}";
+                    WpfServer.SendMessage("Spawn Shell");
+                    statusBar.Text = "按ESC键退出创建模式";
+                }
+
+            }
+        }
+
+        private void DisableDeleteInDataGrid(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Delete)
+            {
+                e.Handled = true;
+            }
+        }
+
+        
+
+        
+
         void WriteFile(string filePath,string fileName,List<string> content)
         {//写入文件
             string name = filePath + '/' + fileName;
