@@ -244,6 +244,12 @@ namespace WPF场景仿真推演系统
                 Console.WriteLine("msgdissel");
                 mUnitMan.ParseMsg(tmsg);
             }
+            tmsg = WpfServer.GetMsg("Fire");
+            if (tmsg != null)
+            {
+                Console.WriteLine("msgfire");
+                mUnitMan.ParseMsg(tmsg);
+            }
             //dispatcherTimer2.Start();
         }
 
@@ -432,20 +438,12 @@ namespace WPF场景仿真推演系统
             string newKey=(e.Row.DataContext as ParamsData).name;
             string newValue = (e.EditingElement as TextBox).Text;
             float res;
-            
-            if (newKey == "名称")
-            {
-                mUnitMan.selUnit.mName = newValue;
-                
-                mUnitMan.UpdateDisplayList();
-                return;
-            }
             UnitType ta;
             if (newKey == "类型" && !UnitType.TryParse(newValue, out ta)) { e.Cancel = true; mUnitMan.UpdateParamList(); return; }
-            if (newKey != "类型"&&!float.TryParse(newValue, out res)) { e.Cancel = true; mUnitMan.UpdateParamList(); return; }
+            if (newKey != "类型"&&newKey!="名称"&&!float.TryParse(newValue, out res)) { e.Cancel = true; mUnitMan.UpdateParamList(); return; }
             Console.WriteLine(newValue);
             ObservableCollection<ParamsData> toc=ParamsDataGrid.DataContext as ObservableCollection<ParamsData>;
-            string[] args = new string[5];
+            string[] args = new string[6];
             for (int i = 0; i < toc.Count;i++)
             {
                 
@@ -463,6 +461,21 @@ namespace WPF场景仿真推演系统
                 {
                     UnitType tmp2= (UnitType)UnitType.Parse(typeof(UnitType), toc[i].value);
                     args[4] = ((int)tmp2).ToString();
+                }else if(toc[i].name=="名称")
+                {
+                    if(toc[i].name==newKey)
+                    {
+                        args[5] = newValue;
+                        mUnitMan.selUnit.mName = newValue;
+
+                        mUnitMan.UpdateDisplayList();
+                    }
+                    else
+                    {
+                        args[5] = toc[i].value;
+                    }
+                    
+                    
                 }
             }
             args[3] = mClock.CurrentTime.ToString();
@@ -473,12 +486,12 @@ namespace WPF场景仿真推演系统
             tp.T = (int)mClock.CurrentTime;
             if (mUnitMan.selUnit.ContainsTargetAtSameTime(tp))
             {
-                WpfServer.SendMessage($"Modify {mUnitMan.selUnit.mID} {args[0]} {args[1]} {args[2]} {args[3]} {args[4]}");
+                WpfServer.SendMessage($"Modify {mUnitMan.selUnit.mID} {args[0]} {args[1]} {args[2]} {args[3]} {args[4]} {args[5]}");
                 mUnitMan.selUnit.ModifyTarget(tp);
             }
             else
             {
-                WpfServer.SendMessage($"Add {mUnitMan.selUnit.mID} {args[0]} {args[1]} {args[2]} {args[3]} {args[4]}");
+                WpfServer.SendMessage($"Add {mUnitMan.selUnit.mID} {args[0]} {args[1]} {args[2]} {args[3]} {args[4]} {args[5]}");
                 mUnitMan.selUnit.AddTarget(tp.X,tp.Y,tp.Z,tp.T);
             }
             if(int.Parse(args[4])!=(int)mUnitMan.selUnit.mType)
@@ -750,31 +763,31 @@ namespace WPF场景仿真推演系统
                 if (con == "驱逐舰")
                 {
                     statusBar.Text = $"Select {ts.Header.ToString()}";
-                    WpfServer.SendMessage("Spawn DD");
+                    WpfServer.SendMessage($"Spawn DD {TeamComboBox.Text}");
                     statusBar.Text = "按ESC键退出创建模式";
                 }
                 else if (con == "摄像机")
                 {
                     statusBar.Text = $"Select {ts.Header.ToString()}";
-                    WpfServer.SendMessage("Spawn Camera");
+                    WpfServer.SendMessage($"Spawn Camera {TeamComboBox.Text}");
                     statusBar.Text = "按ESC键退出创建模式";
                 }
                 else if (con == "战列舰")
                 {
                     statusBar.Text = $"Select {ts.Header.ToString()}";
-                    WpfServer.SendMessage("Spawn BB");
+                    WpfServer.SendMessage($"Spawn BB {TeamComboBox.Text}");
                     statusBar.Text = "按ESC键退出创建模式";
                 }
                 else if (con == "航空母舰")
                 {
                     statusBar.Text = $"Select {ts.Header.ToString()}";
-                    WpfServer.SendMessage("Spawn CV");
+                    WpfServer.SendMessage($"Spawn CV {TeamComboBox.Text}");
                     statusBar.Text = "按ESC键退出创建模式";
                 }
                 else if (con == "炮弹")
                 {
                     statusBar.Text = $"Select {ts.Header.ToString()}";
-                    WpfServer.SendMessage("Spawn Shell");
+                    WpfServer.SendMessage($"Spawn Shell {TeamComboBox.Text}");
                     statusBar.Text = "按ESC键退出创建模式";
                 }
 
@@ -789,9 +802,22 @@ namespace WPF场景仿真推演系统
             }
         }
 
-        
+        private void LaunchShellBtn_Click(object sender, RoutedEventArgs e)
+        {
+            
+                WpfServer.SendMessage($"Aim Shell {mUnitMan.selUnit.mID}");
+                statusBar.Text = "左键单击指定攻击目标点，按ESC键取消攻击";
+            
+        }
 
-        
+        private void LaunchTorpedoBtn_Click(object sender, RoutedEventArgs e)
+        {
+
+
+            WpfServer.SendMessage($"Aim Torpedo {mUnitMan.selUnit.mID}");
+            statusBar.Text = "左键单击指定攻击目标点，按ESC键取消攻击";
+
+        }
 
         void WriteFile(string filePath,string fileName,List<string> content)
         {//写入文件

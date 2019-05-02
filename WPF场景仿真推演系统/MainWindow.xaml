@@ -72,7 +72,7 @@
                                         <ColumnDefinition/>
                                     </Grid.ColumnDefinitions>
                                     <Label Content="队伍" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <ComboBox VerticalAlignment="Center" Grid.Column="1" VerticalContentAlignment="Center" HorizontalContentAlignment="Stretch" SelectedIndex="0">
+                                    <ComboBox x:Name="TeamComboBox" VerticalAlignment="Center" Grid.Column="1" VerticalContentAlignment="Center" HorizontalContentAlignment="Stretch" SelectedIndex="0">
                                         <ComboBoxItem Content="0"/>
                                         <ComboBoxItem Content="1"/>
                                         <ComboBoxItem Content="2"/>
@@ -125,9 +125,9 @@
                                 </Expander>
                                 <Expander Header="动作" Grid.Row="1" Background="White" IsExpanded="True">
                                     <StackPanel Background="#FFEEEEEE" >
-                                        <Button Content="发射鱼雷" Margin="0,0,0,5"></Button>
-                                        <Button Content="开炮" Margin="0,0,0,5"></Button>
-                                        <Button Content="删除" Margin="0,0,0,5" Background="Red" Foreground="White"/>
+                                        <Button x:Name="LaunchTorpedoBtn" Content="发射鱼雷" Margin="0,0,0,5" Click="LaunchTorpedoBtn_Click" Visibility="Collapsed"></Button>
+                                        <Button x:Name="LaunchShellBtn" Content="开炮" Margin="0,0,0,5" Click="LaunchShellBtn_Click"></Button>
+                                        <Button Content="删除" Margin="0,0,0,5" Background="Red" Foreground="White" Visibility="Collapsed"/>
                                     </StackPanel>
 
 

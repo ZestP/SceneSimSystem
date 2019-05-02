@@ -25,7 +25,7 @@ namespace WPF场景仿真推演系统
             unitAvability = new List<bool>();
             unitsDisplayList = new ObservableCollection<UnitData>();
         }
-        public int AddUnit(int type,string initPosX,string initPosY,string initPosZ)
+        public int AddUnit(int type,string initPosX,string initPosY,string initPosZ,int team)
         {
             
             int ptr = -1;
@@ -42,14 +42,14 @@ namespace WPF场景仿真推演系统
             if(ptr==-1)
             {
                 ptr = units.Count;
-                UnitProfile tup = SpawnUnit(ptr,type);
+                UnitProfile tup = SpawnUnit(ptr,type,team);
                 tup.AddTarget(initPosX, initPosY, initPosZ, 0);
                 units.Add(tup);
                 unitAvability.Add(true);
             }
             else
             {
-                UnitProfile tup = SpawnUnit(ptr,type);
+                UnitProfile tup = SpawnUnit(ptr,type,team);
                 tup.AddTarget(initPosX, initPosY, initPosZ, 0);
                 units[ptr]=tup;
                 unitAvability[ptr] = true;
@@ -58,13 +58,13 @@ namespace WPF场景仿真推演系统
             
             return ptr;
         }
-        private UnitProfile SpawnUnit(int ID,int type)
+        private UnitProfile SpawnUnit(int ID,int type,int team)
         {
             UnitProfile tup = null;
             if (type == 0||type==2||type==3||type==4)
-                tup = new UnitProfile(ID, type, mWindow);
+                tup = new UnitProfile(ID, type,team, mWindow);
             else if (type == 1)
-                tup = new CameraProfile(ID, type, mWindow);
+                tup = new CameraProfile(ID, type,team, mWindow);
             return tup;
         }
 
@@ -94,37 +94,59 @@ namespace WPF场景仿真推演系统
                         {
                             case "DD":
                                 Console.WriteLine("PArsing");
-                                int uid = AddUnit(0, msg[3], msg[4], msg[5]);
+                                int uid = AddUnit(0, msg[3], msg[4], msg[5],int.Parse(msg[6]));
                                 UpdateDisplayList();
                                 UpdateCamList();
                                 break;
                             case "Camera":
                                 Console.WriteLine("PArsing Cam");
-                                uid = AddUnit(1, msg[3], msg[4], msg[5]);
+                                uid = AddUnit(1, msg[3], msg[4], msg[5], int.Parse(msg[6]));
                                 UpdateDisplayList();
                                 UpdateCamList();
                                 break;
                             case "BB":
                                 Console.WriteLine("PArsing");
-                                uid = AddUnit(2, msg[3], msg[4], msg[5]);
+                                uid = AddUnit(2, msg[3], msg[4], msg[5], int.Parse(msg[6]));
                                 UpdateDisplayList();
                                 UpdateCamList();
                                 break;
                             case "CV":
                                 Console.WriteLine("PArsing");
-                                uid = AddUnit(3, msg[3], msg[4], msg[5]);
+                                uid = AddUnit(3, msg[3], msg[4], msg[5], int.Parse(msg[6]));
                                 UpdateDisplayList();
                                 UpdateCamList();
                                 break;
                             case "Shell":
                                 Console.WriteLine("PArsing");
-                                uid = AddUnit(4, msg[3], msg[4], msg[5]);
+                                uid = AddUnit(4, msg[3], msg[4], msg[5], int.Parse(msg[6]));
+                                UpdateDisplayList();
+                                UpdateCamList();
+                                break;
+                            case "Torpedo":
+                                Console.WriteLine("PArsing");
+                                uid = AddUnit(5, msg[3], msg[4], msg[5], int.Parse(msg[6]));
                                 UpdateDisplayList();
                                 UpdateCamList();
                                 break;
                             default:
                                 break;
                         }
+                        break;
+                    case "Fire":
+                        int parentid = int.Parse(msg[2]);
+                        Position p = GetUnit(parentid).Move((int)mWindow.mClock.CurrentTime);
+                        int nuid = AddUnit(int.Parse(msg[1]),p.X , p.Y, p.Z, GetUnit(parentid).mTeam);
+                        mWindow.WpfServer.SendMessage($"Spawn Shell {GetUnit(parentid).mTeam} {p.X} {p.Y} {p.Z} {p.T}");
+                        int endtime = (int)(mWindow.mClock.CurrentTime +
+                            (float)Math.Sqrt((float.Parse(msg[3]) - float.Parse(p.X))* (float.Parse(msg[3]) - float.Parse(p.X))+
+                            (float.Parse(msg[4]) - float.Parse(p.Y)) * (float.Parse(msg[4]) - float.Parse(p.Y))+
+                            (float.Parse(msg[5]) - float.Parse(p.Z)) * (float.Parse(msg[5]) - float.Parse(p.Z)))/GetUnit(parentid).mSpeed);
+                        GetUnit(nuid).AddTarget(msg[3], msg[4], msg[5],endtime);
+                        mWindow.WpfServer.SendMessage($"Add {nuid} {p.X} {p.Y} {p.Z} {endtime} {(int)GetUnit(nuid).mType} {GetUnit(nuid).mName}");
+                        UpdateDisplayList();
+                        UpdateCamList();
+                                
+                        
                         break;
                     case "Select":
 
@@ -135,7 +157,7 @@ namespace WPF场景仿真推演系统
                         break;
                     case "Modify":
 
-                        selUnit = GetUnit(int.Parse(msg[1]));
+                        UnitProfile tselUnit = GetUnit(int.Parse(msg[1]));
 
                         Position tp = new Position();
 
@@ -143,32 +165,32 @@ namespace WPF场景仿真推演系统
                         tp.Y = msg[3];
                         tp.Z = msg[4];
                         tp.T = int.Parse(msg[5]);
-                        if (selUnit.canRotate)
+                        if (tselUnit.canRotate)
                         {
-                            tp.RotX = msg[6];
-                            tp.RotY = msg[7];
-                            tp.RotZ = msg[8];
+                            tp.RotX = msg[7];
+                            tp.RotY = msg[8];
+                            tp.RotZ = msg[9];
                         }
-                        selUnit.ModifyTarget(tp);
+                        tselUnit.ModifyTarget(tp);
                         UpdateKeyframeList();
                         UpdateParamList();
                         break;
                     case "Add":
 
-                        selUnit = GetUnit(int.Parse(msg[1]));
+                        tselUnit = GetUnit(int.Parse(msg[1]));
                         Position tp2 = new Position();
                         tp2.X = msg[2];
                         tp2.Y = msg[3];
                         tp2.Z = msg[4];
                         tp2.T = int.Parse(msg[5]);
-                        if (selUnit.canRotate)
+                        if (tselUnit.canRotate)
                         {
-                            tp2.RotX = msg[6];
-                            tp2.RotY = msg[7];
-                            tp2.RotZ = msg[8];
-                            selUnit.AddTarget(tp2.X, tp2.Y, tp2.Z, tp2.T,tp2.RotX,tp2.RotY,tp2.RotZ);
+                            tp2.RotX = msg[7];
+                            tp2.RotY = msg[8];
+                            tp2.RotZ = msg[9];
+                            tselUnit.AddTarget(tp2.X, tp2.Y, tp2.Z, tp2.T,tp2.RotX,tp2.RotY,tp2.RotZ);
                         }
-                        else { selUnit.AddTarget(tp2.X, tp2.Y, tp2.Z, tp2.T); }
+                        else { tselUnit.AddTarget(tp2.X, tp2.Y, tp2.Z, tp2.T); }
                         
                         UpdateKeyframeList();
                         UpdateParamList();
@@ -241,7 +263,7 @@ namespace WPF场景仿真推演系统
                 string[] temp = list[i].Split(new char[] { ' ' });
                 if(temp.Length>0)
                 {
-                    AddUnit(int.Parse(temp[2]), "0", "0", "0");
+                    AddUnit(int.Parse(temp[2]), "0", "0", "0",0);
                     int tcount = int.Parse(temp[3]);
                     units[units.Count - 1].mName = temp[1];
                     units[units.Count - 1].ClearTargets();

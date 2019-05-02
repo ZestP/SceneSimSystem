@@ -6,7 +6,7 @@ namespace WPF场景仿真推演系统
 {
     public enum UnitType
     {
-        驱逐舰,摄像机,战列舰,航空母舰,炮弹
+        驱逐舰,摄像机,战列舰,航空母舰,炮弹,鱼雷
     }
     public class UnitProfile
     {
@@ -19,12 +19,14 @@ namespace WPF场景仿真推演系统
         public Dictionary<int, string> mTimeMemo;
         public bool canRotate;
         public MainWindow mWindow;
-        public UnitProfile(int id, int type, MainWindow mw)
+        public float mSpeed = 10;
+        public UnitProfile(int id, int type,int team, MainWindow mw)
         {
             
             mWindow = mw;
             mType = (UnitType)type;
             mID = id;
+            mTeam = team;
             mName = $"{mType}_{mID}";
             mTimeMemo = new Dictionary<int, string>();
             canRotate = false;
@@ -168,6 +170,7 @@ namespace WPF场景仿真推演系统
                 ObservableCollection<ParamsData> ans = new ObservableCollection<ParamsData>();
                 ans.Add(new ParamsData("名称", mName.ToString()));
                 ans.Add(new ParamsData("类型", mType.ToString()));
+                ans.Add(new ParamsData("队伍", mTeam.ToString()));
                 ans.Add(new ParamsData("X坐标", mTargets[mTimeDict[time]].X));
                 ans.Add(new ParamsData("Y坐标", mTargets[mTimeDict[time]].Y));
                 ans.Add(new ParamsData("Z坐标", mTargets[mTimeDict[time]].Z));
@@ -180,6 +183,7 @@ namespace WPF场景仿真推演系统
                 ObservableCollection<ParamsData> ansOb = new ObservableCollection<ParamsData>();
                 ansOb.Add(new ParamsData("名称", mName.ToString()));
                 ansOb.Add(new ParamsData("类型", mType.ToString()));
+                ansOb.Add(new ParamsData("队伍", mTeam.ToString()));
                 ansOb.Add(new ParamsData("X坐标", tp.X));
                 ansOb.Add(new ParamsData("Y坐标", tp.Y));
                 ansOb.Add(new ParamsData("Z坐标", tp.Z));
@@ -187,7 +191,7 @@ namespace WPF场景仿真推演系统
             }
         }
 
-        protected Position Move(int time)
+        public Position Move(int time)
         {
             Position ans = new Position();
             int currentTargetPtr = 0;

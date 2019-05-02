@@ -132,7 +132,7 @@ namespace WPF场景仿真推演系统
         void Parse(string raw)
         {
             List<string> tmp = new List<string>(raw.Split(' '));
-            if(tmp.Count>0&&tmp[0]=="Spawn"||tmp[0]=="Select"||tmp[0]=="Modify" || tmp[0] == "Add"||tmp[0]=="Disselect")
+            if(tmp.Count>0&&tmp[0]=="Spawn"||tmp[0]=="Select"||tmp[0]=="Modify" || tmp[0] == "Add"||tmp[0]=="Disselect"|| tmp[0] == "Fire")
             {
                 msgs.Enqueue(tmp);
             }

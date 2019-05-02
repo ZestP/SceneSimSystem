@@ -9,7 +9,7 @@ namespace WPF场景仿真推演系统
 {
     class CameraProfile : UnitProfile
     {
-        public CameraProfile(int id, int type, MainWindow mw) : base(id, type, mw)
+        public CameraProfile(int id, int type,int team, MainWindow mw) : base(id, type,team, mw)
         {
             canRotate = true;
         }
