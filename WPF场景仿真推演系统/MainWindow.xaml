@@ -72,7 +72,7 @@
                                         <ColumnDefinition/>
                                     </Grid.ColumnDefinitions>
                                     <Label Content="队伍" HorizontalAlignment="Left" VerticalAlignment="Center"></Label>
-                                    <ComboBox x:Name="TeamComboBox" VerticalAlignment="Center" Grid.Column="1" VerticalContentAlignment="Center" HorizontalContentAlignment="Stretch" SelectedIndex="0">
+                                    <ComboBox x:Name="TeamComboBox" VerticalAlignment="Center" Grid.Column="1" VerticalContentAlignment="Center" HorizontalContentAlignment="Stretch" SelectedIndex="0" SelectionChanged="TeamComboBox_SelectionChanged">
                                         <ComboBoxItem Content="0"/>
                                         <ComboBoxItem Content="1"/>
                                         <ComboBoxItem Content="2"/>
@@ -123,7 +123,7 @@
 
                                     </DataGrid>
                                 </Expander>
-                                <Expander Header="动作" Grid.Row="1" Background="White" IsExpanded="True">
+                                <Expander x:Name="FunctionExpander" Header="动作" Grid.Row="1" Background="White" IsExpanded="True">
                                     <StackPanel Background="#FFEEEEEE" >
                                         <Button x:Name="LaunchTorpedoBtn" Content="发射鱼雷" Margin="0,0,0,5" Click="LaunchTorpedoBtn_Click" Visibility="Collapsed"></Button>
                                         <Button x:Name="LaunchShellBtn" Content="开炮" Margin="0,0,0,5" Click="LaunchShellBtn_Click"></Button>

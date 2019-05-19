@@ -149,5 +149,27 @@ namespace WPF场景仿真推演系统
             }
             mWindow.DopesheetGrid.DataContext = dopesheetList;
         }
+        public List<string> Serialize()
+        {
+            List<string> ans = new List<string>();
+            foreach (CamKey ck in mCamKeys)
+            {
+                ans.Add($"{ck.Camid} {ck.T}");
+            }
+            return ans;
+        }
+        public void Deserialize(List<string> list)
+        {
+            if (list == null) return;
+            mCamKeys.Clear();
+            for (int i = 0; i < list.Count; i++)
+            {
+                string[] temp = list[i].Split(new char[] { ' ' });
+                if (temp.Length == 2)
+                {
+                    AddTarget(int.Parse(temp[0]), int.Parse(temp[1]));
+                }
+            }
+        }
     }
 }

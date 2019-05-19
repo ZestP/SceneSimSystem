@@ -167,9 +167,9 @@ namespace WPF场景仿真推演系统
                         tp.T = int.Parse(msg[5]);
                         if (tselUnit.canRotate)
                         {
-                            tp.RotX = msg[7];
-                            tp.RotY = msg[8];
-                            tp.RotZ = msg[9];
+                            tp.RotX = msg[8];
+                            tp.RotY = msg[9];
+                            tp.RotZ = msg[10];
                         }
                         tselUnit.ModifyTarget(tp);
                         UpdateKeyframeList();
@@ -185,9 +185,9 @@ namespace WPF场景仿真推演系统
                         tp2.T = int.Parse(msg[5]);
                         if (tselUnit.canRotate)
                         {
-                            tp2.RotX = msg[7];
-                            tp2.RotY = msg[8];
-                            tp2.RotZ = msg[9];
+                            tp2.RotX = msg[8];
+                            tp2.RotY = msg[9];
+                            tp2.RotZ = msg[10];
                             tselUnit.AddTarget(tp2.X, tp2.Y, tp2.Z, tp2.T,tp2.RotX,tp2.RotY,tp2.RotZ);
                         }
                         else { tselUnit.AddTarget(tp2.X, tp2.Y, tp2.Z, tp2.T); }
@@ -213,12 +213,24 @@ namespace WPF场景仿真推演系统
             {
                 mWindow.ParamsDataGrid.DataContext = selUnit.GetParamsAtTime((int)mWindow.mClock.CurrentTime);
             }
+            ToggleFunctionBtns();
         }
         public void UpdateKeyframeList()
         {
             if (selUnit != null)
             {
                 mWindow.KeyDataGrid.DataContext = selUnit.GetKeyframes();
+            }
+            
+        }
+        public void ToggleFunctionBtns()
+        {
+            if (selUnit != null)
+            {
+                if(selUnit.canFire)
+                    mWindow.LaunchShellBtn.Visibility = System.Windows.Visibility.Visible;
+                else
+                    mWindow.LaunchShellBtn.Visibility = System.Windows.Visibility.Collapsed;
             }
         }
         public void UpdateDisplayList()
@@ -249,7 +261,7 @@ namespace WPF场景仿真推演系统
             List<string> ans = new List<string>();
             foreach(UnitProfile up in units)
             {
-                ans.Add($"{up.mID} {up.mName} {(int)up.mType} {up.mTargets.Count}");
+                ans.Add($"{up.mID} {up.mName} {(int)up.mType} {up.mTeam} {up.mTargets.Count}");
                 ans.AddRange(up.Serialize());
             }
             return ans;
@@ -263,15 +275,25 @@ namespace WPF场景仿真推演系统
                 string[] temp = list[i].Split(new char[] { ' ' });
                 if(temp.Length>0)
                 {
-                    AddUnit(int.Parse(temp[2]), "0", "0", "0",0);
-                    int tcount = int.Parse(temp[3]);
+                    AddUnit(int.Parse(temp[2]), "0", "0", "0",int.Parse(temp[3]));
+                    mWindow.WpfServer.SendMessage($"Spawn {temp[2]} {temp[3]} {temp[0]}");
+                    int tcount = int.Parse(temp[4]);
                     units[units.Count - 1].mName = temp[1];
                     units[units.Count - 1].ClearTargets();
                     for (int j=0;j<tcount;j++)
                     {
                         i++;
                         temp = list[i].Split(new char[] { ' ' });
-                        units[units.Count - 1].AddTarget(temp[1],temp[2],temp[3],int.Parse(temp[0]));
+                        
+                        units[units.Count - 1].AddTarget(temp[1], temp[2], temp[3], int.Parse(temp[0]), temp[4], temp[5], temp[6]);
+                        if (units[units.Count - 1].canRotate)
+                        {
+                            mWindow.WpfServer.SendMessage($"AddKey {units[units.Count - 1].mID} {temp[0]} {temp[1]} {temp[2]} {temp[3]} {temp[4]} {temp[5]} {temp[6]}");
+                        }
+                        else
+                        {
+                            mWindow.WpfServer.SendMessage($"AddKey {units[units.Count - 1].mID} {temp[0]} {temp[1]} {temp[2]} {temp[3]}");
+                        }
                         i++;
                         units[units.Count - 1].SetKeyframeMemo(list[i],int.Parse(temp[0]));
                     }

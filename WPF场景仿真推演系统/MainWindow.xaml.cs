@@ -399,6 +399,8 @@ namespace WPF场景仿真推演系统
             if (UnitsGrid.SelectedItem == null) return;
             string selID = (UnitsGrid.SelectedItem as UnitData).ID;
             mUnitMan.selUnit = mUnitMan.GetUnit(int.Parse(selID));
+            mUnitMan.UpdateParamList();
+            mUnitMan.UpdateKeyframeList();
             WpfServer.SendMessage($"Select {selID}");
             LeftTabCtrl.SelectedIndex = 2;
         }
@@ -686,9 +688,12 @@ namespace WPF场景仿真推演系统
         {
             mInitData.Deserialize(LoadFile(filePath, "InitSettings.sss"));
             mUnitMan.Deserialize(LoadFile(filePath, "UnitList.sss"));
+            mUnitMan.mCamMan.Deserialize(LoadFile(filePath, "Dopesheet.sss"));
             mUnitMan.UpdateParamList();
             mUnitMan.UpdateDisplayList();
             mUnitMan.UpdateKeyframeList();
+            mUnitMan.UpdateCamList();
+            mUnitMan.mCamMan.UpdateDopesheet();
         }
         
         private void Run(object sender, RoutedEventArgs e)
@@ -755,45 +760,56 @@ namespace WPF场景仿真推演系统
 
         private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
-            TreeViewItem ts = (UnitCreatorTree.SelectedItem as TreeViewItem);
-            if (ts != null)
+            if (UnitCreatorTree != null && TeamComboBox != null)
             {
-                string con = ts.Header as string;
-                Console.WriteLine(con);
-                if (con == "驱逐舰")
+                TreeViewItem ts = (UnitCreatorTree.SelectedItem as TreeViewItem);
+                ComboBoxItem cb = (TeamComboBox.SelectedItem as ComboBoxItem);
+                if (ts != null && cb != null)
                 {
-                    statusBar.Text = $"Select {ts.Header.ToString()}";
-                    WpfServer.SendMessage($"Spawn DD {TeamComboBox.Text}");
-                    statusBar.Text = "按ESC键退出创建模式";
-                }
-                else if (con == "摄像机")
-                {
-                    statusBar.Text = $"Select {ts.Header.ToString()}";
-                    WpfServer.SendMessage($"Spawn Camera {TeamComboBox.Text}");
-                    statusBar.Text = "按ESC键退出创建模式";
-                }
-                else if (con == "战列舰")
-                {
-                    statusBar.Text = $"Select {ts.Header.ToString()}";
-                    WpfServer.SendMessage($"Spawn BB {TeamComboBox.Text}");
-                    statusBar.Text = "按ESC键退出创建模式";
-                }
-                else if (con == "航空母舰")
-                {
-                    statusBar.Text = $"Select {ts.Header.ToString()}";
-                    WpfServer.SendMessage($"Spawn CV {TeamComboBox.Text}");
-                    statusBar.Text = "按ESC键退出创建模式";
-                }
-                else if (con == "炮弹")
-                {
-                    statusBar.Text = $"Select {ts.Header.ToString()}";
-                    WpfServer.SendMessage($"Spawn Shell {TeamComboBox.Text}");
-                    statusBar.Text = "按ESC键退出创建模式";
-                }
+                    string con = ts.Header as string;
+                    int team = int.Parse(cb.Content as string);
+                    Console.WriteLine(con);
+                    SpawnCall(con, team);
 
+                }
+            }
+
+        }
+        private void SpawnCall(string con,int team)
+        {
+            Console.WriteLine(con);
+            Console.WriteLine(team);
+            if (con == "驱逐舰")
+            {
+
+                WpfServer.SendMessage($"Spawn DD {team}");
+                statusBar.Text = "按ESC键退出创建模式";
+            }
+            else if (con == "摄像机")
+            {
+
+                WpfServer.SendMessage($"Spawn Camera {team}");
+                statusBar.Text = "按ESC键退出创建模式";
+            }
+            else if (con == "战列舰")
+            {
+
+                WpfServer.SendMessage($"Spawn BB {team}");
+                statusBar.Text = "按ESC键退出创建模式";
+            }
+            else if (con == "航空母舰")
+            {
+
+                WpfServer.SendMessage($"Spawn CV {team}");
+                statusBar.Text = "按ESC键退出创建模式";
+            }
+            else if (con == "炮弹")
+            {
+
+                WpfServer.SendMessage($"Spawn Shell {team}");
+                statusBar.Text = "按ESC键退出创建模式";
             }
         }
-
         private void DisableDeleteInDataGrid(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Delete)
@@ -817,6 +833,24 @@ namespace WPF场景仿真推演系统
             WpfServer.SendMessage($"Aim Torpedo {mUnitMan.selUnit.mID}");
             statusBar.Text = "左键单击指定攻击目标点，按ESC键取消攻击";
 
+        }
+
+        private void TeamComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if(UnitCreatorTree!=null&&TeamComboBox!=null)
+            {
+                TreeViewItem ts = (UnitCreatorTree.SelectedItem as TreeViewItem);
+                ComboBoxItem cb = (TeamComboBox.SelectedItem as ComboBoxItem);
+                if (ts != null && cb != null)
+                {
+                    string con = ts.Header as string;
+                    int team = int.Parse(cb.Content as string);
+
+                    SpawnCall(con, team);
+
+                }
+            }
+            
         }
 
         void WriteFile(string filePath,string fileName,List<string> content)
@@ -845,6 +879,7 @@ namespace WPF场景仿真推演系统
         {//写入文件内容
             WriteFile(filePath, "InitSettings.sss", mInitData.Serialize());
             WriteFile(filePath, "UnitList.sss", mUnitMan.Serialize());
+            WriteFile(filePath, "Dopesheet.sss",mUnitMan.mCamMan.Serialize());
         }
     }
 

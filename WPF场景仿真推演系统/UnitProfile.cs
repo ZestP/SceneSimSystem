@@ -18,6 +18,7 @@ namespace WPF场景仿真推演系统
         protected Dictionary<int, int> mTimeDict;
         public Dictionary<int, string> mTimeMemo;
         public bool canRotate;
+        public bool canFire;
         public MainWindow mWindow;
         public float mSpeed = 10;
         public UnitProfile(int id, int type,int team, MainWindow mw)
@@ -30,6 +31,7 @@ namespace WPF场景仿真推演系统
             mName = $"{mType}_{mID}";
             mTimeMemo = new Dictionary<int, string>();
             canRotate = false;
+            canFire = true;
         }
 
         public void AddTarget(string x,string y,string z,int t,string rx,string ry,string rz)
@@ -96,7 +98,7 @@ namespace WPF场景仿真推演系统
         }
         public void ModifyTarget(Position nt)
         {
-            mTargets[mTimeDict[(int)mWindow.mClock.CurrentTime]]=nt;
+            mTargets[mTimeDict[nt.T]]=nt;
             mTargets.Sort((left, right) =>
             {
                 if (left.T < right.T)
@@ -289,7 +291,7 @@ namespace WPF场景仿真推演系统
             List<string> ans = new List<string>();
             foreach (Position p in mTargets)
             {
-                ans.Add($"{p.T} {p.X} {p.Y} {p.Z}");
+                ans.Add($"{p.T} {p.X} {p.Y} {p.Z} {p.RotX} {p.RotY} {p.RotZ}");
                 ans.Add(mTimeMemo[p.T]);
             }
             return ans;
