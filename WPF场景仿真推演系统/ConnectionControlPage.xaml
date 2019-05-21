@@ -5,8 +5,17 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WPF场景仿真推演系统"
         mc:Ignorable="d"
-        Title="ConnectionControlPage" Height="450" Width="800">
+        Title="连接统计" Height="304.167" Width="313.889">
     <Grid>
-        
+        <ListBox x:Name="LinkSurveyList" ItemsSource="{Binding}">
+
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+
+                    <ListBoxItem Content="{Binding Path=Name}" HorizontalAlignment="Left" VerticalAlignment="Center"></ListBoxItem>
+
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
     </Grid>
 </Window>

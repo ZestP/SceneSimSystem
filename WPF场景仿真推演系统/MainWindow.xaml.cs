@@ -253,6 +253,12 @@ namespace WPF场景仿真推演系统
                 Console.WriteLine("msgfire");
                 mUnitMan.ParseMsg(tmsg);
             }
+            tmsg = WpfServer.GetMsg("SyncTime");
+            if (tmsg != null)
+            {
+                Console.WriteLine("msgsync");
+                mUnitMan.ParseMsg(tmsg);
+            }
             //dispatcherTimer2.Start();
         }
 
@@ -430,7 +436,7 @@ namespace WPF场景仿真推演系统
             WpfServer.SendMessage($"Timeleap {(int)mClock.CurrentTime}");
             mUnitMan.UpdateParamList();
         }
-        private void Timeshift(int to)
+        public void Timeshift(int to)
         {
             mClock.CurrentTime = to;
             currentTimeIndicator.Content = $"{mClock.CurrentTime}";
@@ -865,6 +871,12 @@ namespace WPF场景仿真推演系统
             TcpFileServer.SendFile(tmpfilepath,"InitSettings.sss");
             TcpFileServer.SendFile(tmpfilepath, "UnitList.sss");
             TcpFileServer.SendFile(tmpfilepath, "Dopesheet.sss");
+        }
+
+        private void LinkSurvey(object sender, RoutedEventArgs e)
+        {
+            ConnectionControlPage mw = new ConnectionControlPage(TcpFileServer);
+            mw.Show();
         }
 
         void WriteFile(string filePath,string fileName,List<string> content)

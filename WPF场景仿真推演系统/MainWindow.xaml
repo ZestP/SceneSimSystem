@@ -36,6 +36,7 @@
                 <Separator/>
                 <Button Content="脚本预演" Click="Run"></Button>
                 <Button Content="发布脚本" Click="Publish"></Button>
+                <Button Content="连接统计" Click="LinkSurvey"></Button>
             </ToolBar>
 
             <StatusBar DockPanel.Dock="Bottom" VerticalAlignment="Bottom" Background="#FF007ACC">

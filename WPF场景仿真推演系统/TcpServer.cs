@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -7,11 +8,20 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 
 namespace WPF场景仿真推演系统
 {
-    class TcpServer
+    public class TcpServer
     {
+        public class NameData
+        {
+            public string Name { get; set; }
+            public NameData(string n)
+            {
+                Name = n;
+            }
+        }
         public enum TcpServerMode { EDITOR,PLAYER}
         //私有成员
         private byte[] result = new byte[1024];
@@ -20,6 +30,7 @@ namespace WPF场景仿真推演系统
         public List<Socket> clientSockets;
         public List<bool> clientLinked;
         public Dictionary<Socket, int> clientDict;
+        public ObservableCollection<NameData> linkedClientNames;
         Thread myThread;
         public Thread receiveThread;
 
@@ -39,6 +50,7 @@ namespace WPF场景仿真推演系统
             clientSockets = new List<Socket>();
             clientDict = new Dictionary<Socket, int>();
             clientLinked = new List<bool>();
+            linkedClientNames = new ObservableCollection<NameData>();
         }
 
         internal void StartServer()
@@ -78,8 +90,22 @@ namespace WPF场景仿真推演系统
                 foreach(Socket s in clientSockets)if(clientLinked[clientDict[s]])s.Send(Encoding.UTF8.GetBytes(msg+(char)(5)));
             
         }
-
-
+        public ListBox lb;
+        public void PrepareDisplayList()
+        {
+            
+            linkedClientNames = new ObservableCollection<NameData>();
+            for(int i=0;i<clientLinked.Count;i++)
+            {
+                if(clientLinked[i])
+                {
+                    linkedClientNames.Add(new NameData(clientSockets[i].RemoteEndPoint.ToString()));
+                    //Console.WriteLine("ADD display" + clientSockets[i].RemoteEndPoint.ToString());
+                }
+            }
+            if(lb!=null)
+                lb.DataContext = linkedClientNames;
+        }
 
         /// <summary>  
         /// 监听客户端连接  
@@ -94,6 +120,7 @@ namespace WPF场景仿真推演系统
                     clientSockets.Add(ts);
                     clientDict.Add(ts, clientSockets.Count - 1);
                     clientLinked.Add(true);
+                    PrepareDisplayList();
                     ts.Send(Encoding.UTF8.GetBytes("Server Say Hello"));
                     receiveThread = new Thread(ReceiveMessage);
                     receiveThread.Start(ts);
@@ -151,10 +178,12 @@ namespace WPF场景仿真推演系统
         {
             if (client != null)
             {
+                clientLinked[clientDict[client]] = false;
+                PrepareDisplayList();
                 client.Shutdown(SocketShutdown.Both);
                 client.Close();
-                clientLinked[clientDict[client]] = false;
-
+                
+                
             }
 
         }
@@ -162,7 +191,7 @@ namespace WPF场景仿真推演系统
         void Parse(string raw)
         {
             List<string> tmp = new List<string>(raw.Split(' '));
-            if(tmp.Count>0&&tmp[0]=="Spawn"||tmp[0]=="Select"||tmp[0]=="Modify" || tmp[0] == "Add"||tmp[0]=="Disselect"|| tmp[0] == "Fire")
+            if(tmp.Count>0&&tmp[0]=="Spawn"||tmp[0]=="Select"||tmp[0]=="Modify" || tmp[0] == "Add"||tmp[0]=="Disselect"|| tmp[0] == "Fire"||tmp[0]=="SyncTime")
             {
                 msgs.Enqueue(tmp);
             }

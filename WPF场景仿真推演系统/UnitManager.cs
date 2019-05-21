@@ -200,6 +200,9 @@ namespace WPF场景仿真推演系统
                         mWindow.ParamsDataGrid.DataContext = null;
                         mWindow.KeyDataGrid.DataContext = null;
                         break;
+                    case "SyncTime":
+                        mWindow.Timeshift((int)float.Parse(msg[1]));
+                        break;
                 }
 
 
