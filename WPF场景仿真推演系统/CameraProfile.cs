@@ -13,6 +13,11 @@ namespace WPF场景仿真推演系统
         {
             canRotate = true;
             canFire = false;
+            if (mw.mUnitMan.mCamMan.mCamKeys == null)
+            {
+                mw.mUnitMan.mCamMan.AddTarget(id, 0);
+                mw.mUnitMan.mCamMan.UpdateDopesheet();
+            }
         }
         public override ObservableCollection<ParamsData> GetParamsAtTime(int time)
         {

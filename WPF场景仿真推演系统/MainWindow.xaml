@@ -35,6 +35,7 @@
                 <Button Content="另存为" Click="SaveAs"></Button>
                 <Separator/>
                 <Button Content="脚本预演" Click="Run"></Button>
+                <Button Content="发布脚本" Click="Publish"></Button>
             </ToolBar>
 
             <StatusBar DockPanel.Dock="Bottom" VerticalAlignment="Bottom" Background="#FF007ACC">

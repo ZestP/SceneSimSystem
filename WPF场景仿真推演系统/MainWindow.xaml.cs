@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Data;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
@@ -123,6 +124,7 @@ namespace WPF场景仿真推演系统
         private Point u3dLeftUpPos;
 
         internal TcpServer WpfServer { get; private set; }
+        internal TcpServer TcpFileServer { get; private set; }
         public UnitManager mUnitMan;
         private bool isU3DLoaded = false;
         public Clock mClock;
@@ -133,7 +135,8 @@ namespace WPF场景仿真推演系统
             mInitData = id;
             InitializeComponent();
             mUnitMan = new UnitManager(this);
-            WpfServer = new TcpServer();
+            WpfServer = new TcpServer(IPAddress.Parse("127.0.0.1"),500,1,TcpServer.TcpServerMode.EDITOR);
+            TcpFileServer=new TcpServer(IPAddress.Parse("127.0.0.1"), 12345, 10, TcpServer.TcpServerMode.PLAYER);
             WpfServer.BindRefs(mUnitMan);
             mClock = new Clock(id.mTimeSpan);
         }
@@ -189,7 +192,7 @@ namespace WPF场景仿真推演系统
             clockDispatcher.Interval = new TimeSpan(0, 0, 0, 1);
             clockDispatcher.Start();
             WpfServer.StartServer();
-            
+            TcpFileServer.StartServer();
             UnitsGrid.DataContext = mUnitMan.unitsDisplayList;
             //KeyDataGrid.ItemsSource = list;
             
@@ -301,6 +304,7 @@ namespace WPF场景仿真推演系统
                     process.Kill();
                 //FreeConsole();
                 WpfServer.QuitServer();
+                TcpFileServer.QuitServer();
             }
             catch (Exception)
             {
@@ -851,6 +855,16 @@ namespace WPF场景仿真推演系统
                 }
             }
             
+        }
+
+        private void Publish(object sender, RoutedEventArgs e)
+        {
+            SaveFile(null, null);
+
+            
+            TcpFileServer.SendFile(tmpfilepath,"InitSettings.sss");
+            TcpFileServer.SendFile(tmpfilepath, "UnitList.sss");
+            TcpFileServer.SendFile(tmpfilepath, "Dopesheet.sss");
         }
 
         void WriteFile(string filePath,string fileName,List<string> content)

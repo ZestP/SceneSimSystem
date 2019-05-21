@@ -41,7 +41,9 @@ namespace WPF场景仿真推演系统
             
             Console.WriteLine("Add camkey at" + target.Camid + ' ' + target.T);
             if (mCamKeys == null)
+            { 
                 mCamKeys = new List<CamKey>();
+            }
 
             mCamKeys.Add(target);
             mCamKeys.Sort((left, right) =>
