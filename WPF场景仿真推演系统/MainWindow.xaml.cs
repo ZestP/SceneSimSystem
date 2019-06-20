@@ -5,6 +5,7 @@ using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
@@ -136,7 +137,28 @@ namespace WPF场景仿真推演系统
             InitializeComponent();
             mUnitMan = new UnitManager(this);
             WpfServer = new TcpServer(IPAddress.Parse("127.0.0.1"),500,1,TcpServer.TcpServerMode.EDITOR);
-            TcpFileServer=new TcpServer(IPAddress.Parse("127.0.0.1"), 12345, 10, TcpServer.TcpServerMode.PLAYER);
+            try
+           {
+               string HostName = Dns.GetHostName(); //得到主机名
+               IPHostEntry IpEntry = Dns.GetHostEntry(HostName);
+               for (int i = 0; i < IpEntry.AddressList.Length; i++)
+               {
+                   //从IP地址列表中筛选出IPv4类型的IP地址
+                   //AddressFamily.InterNetwork表示此IP为IPv4,
+                   //AddressFamily.InterNetworkV6表示此地址为IPv6类型
+                   if (IpEntry.AddressList[i].AddressFamily == AddressFamily.InterNetwork)
+                   {
+                        TcpFileServer = new TcpServer(IpEntry.AddressList[i], 12345, 10, TcpServer.TcpServerMode.PLAYER);
+                        break;
+                    }
+               }
+               
+           }
+           catch (Exception ex)
+           {
+               Console.WriteLine(ex.Message);
+           }
+            
             WpfServer.BindRefs(mUnitMan);
             mClock = new Clock(id.mTimeSpan);
         }

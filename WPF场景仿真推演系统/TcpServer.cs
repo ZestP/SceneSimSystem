@@ -103,8 +103,8 @@ namespace WPF场景仿真推演系统
                     //Console.WriteLine("ADD display" + clientSockets[i].RemoteEndPoint.ToString());
                 }
             }
-            if(lb!=null)
-                lb.DataContext = linkedClientNames;
+            //if(lb!=null)
+            //    lb.DataContext = linkedClientNames;
         }
 
         /// <summary>  
