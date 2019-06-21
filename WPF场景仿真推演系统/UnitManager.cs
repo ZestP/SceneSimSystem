@@ -283,6 +283,7 @@ namespace WPF场景仿真推演系统
                     int tcount = int.Parse(temp[4]);
                     units[units.Count - 1].mName = temp[1];
                     units[units.Count - 1].ClearTargets();
+                    mWindow.WpfServer.SendMessage($"Modify {units[units.Count - 1].mID} {0} {0} {0} {0} {temp[2]} {temp[1]}");
                     for (int j=0;j<tcount;j++)
                     {
                         i++;

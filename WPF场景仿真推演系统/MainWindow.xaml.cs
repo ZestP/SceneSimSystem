@@ -148,7 +148,7 @@ namespace WPF场景仿真推演系统
                    //AddressFamily.InterNetworkV6表示此地址为IPv6类型
                    if (IpEntry.AddressList[i].AddressFamily == AddressFamily.InterNetwork)
                    {
-                        TcpFileServer = new TcpServer(IpEntry.AddressList[i], 12345, 10, TcpServer.TcpServerMode.PLAYER);
+                        TcpFileServer = new TcpServer(IPAddress.Any, 12345, 10, TcpServer.TcpServerMode.PLAYER);
                         break;
                     }
                }
@@ -617,14 +617,22 @@ namespace WPF场景仿真推演系统
 
                 tmpfilepath = openFileDialog.SelectedPath;
                 ScanFiles(tmpfilepath);
+                statusBar.Text = "载入成功";
             }
 
             
 
-            statusBar.Text = "载入成功";
+            
         }
         string tmpfilepath = null;
         private void SaveFile(object sender, RoutedEventArgs e)
+        {
+
+
+            TrySaveFile();
+            
+        }
+        private bool TrySaveFile()
         {
             if (tmpfilepath == null)
             {
@@ -633,15 +641,24 @@ namespace WPF场景仿真推演系统
                 if (openFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)//注意，此处一定要手动引入System.Window.Forms空间，否则你如果使用默认的DialogResult会发现没有OK属性
                 {
                     Console.WriteLine(openFileDialog.SelectedPath);
-                    
+
                     tmpfilepath = openFileDialog.SelectedPath;
+                    ProduceFiles(tmpfilepath);
+                    statusBar.Text = "保存成功";
+                    return true;
+                }
+                else
+                {
+                    return false;
                 }
             }
-            ProduceFiles(tmpfilepath);
-            
-            statusBar.Text = "保存成功";
+            else
+            {
+                ProduceFiles(tmpfilepath);
+                statusBar.Text = "保存成功";
+                return true;
+            }
         }
-
         private void SaveAs(object sender, RoutedEventArgs e)
         {
             System.Windows.Forms.FolderBrowserDialog openFileDialog = new System.Windows.Forms.FolderBrowserDialog();  //选择文件夹
@@ -652,11 +669,12 @@ namespace WPF场景仿真推演系统
                 Console.WriteLine(openFileDialog.SelectedPath);
 
                 tmpfilepath = openFileDialog.SelectedPath;
+                ProduceFiles(tmpfilepath);
+
+                statusBar.Text = "保存成功";
             }
 
-            ProduceFiles(tmpfilepath);
-
-            statusBar.Text = "保存成功";
+            
         }
 
         private void PlaystateBtn_Click(object sender, RoutedEventArgs e)
@@ -887,12 +905,19 @@ namespace WPF场景仿真推演系统
 
         private void Publish(object sender, RoutedEventArgs e)
         {
-            SaveFile(null, null);
+            if (TrySaveFile())
+            {
 
-            
-            TcpFileServer.SendFile(tmpfilepath,"InitSettings.sss");
-            TcpFileServer.SendFile(tmpfilepath, "UnitList.sss");
-            TcpFileServer.SendFile(tmpfilepath, "Dopesheet.sss");
+
+                TcpFileServer.SendFile(tmpfilepath, "InitSettings.sss");
+                TcpFileServer.SendFile(tmpfilepath, "UnitList.sss");
+                TcpFileServer.SendFile(tmpfilepath, "Dopesheet.sss");
+                statusBar.Text = "发布成功";
+            }
+            else
+            {
+                statusBar.Text = "发布失败，请重新发布";
+            }
         }
 
         private void LinkSurvey(object sender, RoutedEventArgs e)

@@ -8,6 +8,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace WPF场景仿真推演系统
@@ -103,8 +104,11 @@ namespace WPF场景仿真推演系统
                     //Console.WriteLine("ADD display" + clientSockets[i].RemoteEndPoint.ToString());
                 }
             }
-            //if(lb!=null)
-            //    lb.DataContext = linkedClientNames;
+            if (lb != null)
+            {
+                Application.Current.Dispatcher.Invoke(new Action(() => lb.DataContext = linkedClientNames));
+            }
+                
         }
 
         /// <summary>  
